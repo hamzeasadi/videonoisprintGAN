@@ -23,7 +23,6 @@ def train_step(disc: nn.Module, gen: nn.Module, data: DataLoader, criterion: nn.
         
         discreal = real.detach().to(dev)
         discfake = fake.detach().to(dev)
-        print("p1")
         for _ in range(5):
             disc_real = disc(discreal).reshape(-1)
             disc_fake = disc(discfake).reshape(-1)
@@ -35,13 +34,11 @@ def train_step(disc: nn.Module, gen: nn.Module, data: DataLoader, criterion: nn.
                 p.data.clamp_(-0.01, 0.01)
 
         # gen training
-        print("p2")
         disc_out = disc(fake).reshape(-1)
-     
+        print(real.shape, fake.shape)
         gen_loss1 = criterion(fake, real)
         gen_loss2 = -torch.mean(disc_out)
         gen_loss = gen_loss1 + gen_loss2
-        print("p3")
         gen_opt.zero_grad()
         gen_loss.backward()
         gen_opt.step()
