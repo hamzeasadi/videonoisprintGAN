@@ -91,6 +91,7 @@ class OneClassLoss(nn.Module):
         Dist  = torch.linalg.matrix_norm(torch.subtract(x1[0], x2)).squeeze()
         Y = torch.range(start=0, end=self.bs-1, dtype=torch.long, device=dev)
         for i in range(1, self.bs):
+            print(i)
             dist = torch.linalg.matrix_norm(torch.subtract(x1[i], x2)).squeeze()
             Dist = torch.vstack((Dist, dist))
 
