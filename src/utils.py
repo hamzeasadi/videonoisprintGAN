@@ -90,7 +90,7 @@ class OneClassLoss(nn.Module):
         print(x1.shape, x2.shape)
         Dist  = torch.linalg.matrix_norm(torch.subtract(x1[0], x2)).squeeze()
         Y = torch.range(start=0, end=self.bs-1, dtype=torch.long, device=dev)
-        for k in range(1, self.bs):
+        for k in range(1, self.bs-1):
             print(k)
             dist = torch.linalg.matrix_norm(torch.subtract(x1[k], x2)).squeeze()
             Dist = torch.vstack((Dist, dist))
