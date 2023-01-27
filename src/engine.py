@@ -20,8 +20,8 @@ def train_step(disc: nn.Module, gen: nn.Module, data: DataLoader, criterion: nn.
         X1 = X1.to(dev).squeeze()
         X2 = X2.to(dev).squeeze()
         fake, real = gen(X1, X2)
-        discreal = real.detach()
-        discfake = fake.detach()
+        discreal = real.detach().to(dev)
+        discfake = fake.detach().to(dev)
         for _ in range(5):
             disc_real = disc(discreal).reshape(-1)
             disc_fake = disc(discfake).reshape(-1)
@@ -55,7 +55,7 @@ def val_step(disc: nn.Module, gen: nn.Module, data: DataLoader, criterion: nn.Mo
         X1 = X1.to(dev).squeeze()
         X2 = X2.to(dev).squeeze()
         fake, real = gen(X1, X2)
-        discreal = real.detach()
+        discreal = real.detach().to(dev)
 
         disc_real = disc(discreal).reshape(-1)
         disc_fake = disc(fake).reshape(-1)
