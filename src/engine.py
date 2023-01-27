@@ -33,8 +33,8 @@ def train_step(disc: nn.Module, gen: nn.Module, data: DataLoader, criterion: nn.
                 p.data.clamp_(-0.01, 0.01)
 
         # gen training
-        gen_loss1 = criterion(fake, real)
         disc_out = disc(fake).reshape(-1)
+        gen_loss1 = criterion(fake, real)
         gen_loss2 = -torch.mean(disc_out)
         gen_loss = gen_loss1 + gen_loss2
         gen_opt.zero_grad()

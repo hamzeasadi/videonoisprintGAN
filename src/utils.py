@@ -125,17 +125,18 @@ def main():
     # x1 = torch.randn(size=(b, 1, 64, 64))
     # x2 = torch.randn(size=(b, 1, 64, 64))
 
-    x1 = torch.randn(size=(4, 1, 10, 10))
-    x2 = 2*torch.ones(size=(4, 1, 10, 10))
-    Dist  = torch.linalg.matrix_norm(torch.subtract(x1[0], x2)).squeeze()
-    Y = torch.range(start=0, end=4, dtype=torch.float32, device=dev)
-    for i in range(1, 4):
-        dist = torch.linalg.matrix_norm(torch.subtract(x1[0], x2)).squeeze()
-        Dist = torch.vstack((Dist, dist))
+    # x1 = torch.randn(size=(4, 1, 10, 10))
+    # x2 = 2*torch.ones(size=(4, 1, 10, 10))
+    # Dist  = torch.linalg.matrix_norm(torch.subtract(x1[0], x2)).squeeze()
+    # Y = torch.range(start=0, end=4, dtype=torch.float32, device=dev)
+    # for i in range(1, 4):
+    #     dist = torch.linalg.matrix_norm(torch.subtract(x1[0], x2)).squeeze()
+    #     Dist = torch.vstack((Dist, dist))
    
 
-    print(Dist.shape)
-    print(Y)
+    # print(Dist.shape)
+    # print(Y)
+    print(list(range(1, 10)))
  
 
 
