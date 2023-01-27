@@ -35,7 +35,7 @@ def train_step(disc: nn.Module, gen: nn.Module, data: DataLoader, criterion: nn.
 
         # gen training
         disc_out = disc(fake).reshape(-1)
-        print(real.shape, fake.shape)
+        print(f"real engine={real.shape}, fake engine={fake.shape}")
         gen_loss1 = criterion(fake, real)
         gen_loss2 = -torch.mean(disc_out)
         gen_loss = gen_loss1 + gen_loss2
