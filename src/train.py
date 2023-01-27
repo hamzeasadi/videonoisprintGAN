@@ -52,6 +52,7 @@ def main():
     GenNet = m.VideoPrint(inch=3, depth=20)
     GenNet.to(dev)
     discNet = m.Critic(channels_img=1, features_d=64)
+    discNet.to(dev)
     crt = utils.OneClassLoss(batch_size=150, pairs=2, reg=0.03)
     gen_opt = optim.RMSprop(params=GenNet.parameters(), lr=3e-4)
     disc_opt = optim.RMSprop(params=discNet.parameters(), lr=3e-4)
