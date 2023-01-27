@@ -26,7 +26,7 @@ def train_step(disc: nn.Module, gen: nn.Module, data: DataLoader, criterion: nn.
             disc_real = disc(discreal).reshape(-1)
             disc_fake = disc(discfake).reshape(-1)
             loss_disc = -(torch.mean(disc_real) - torch.mean(disc_fake))
-            disc_opt.zero_grade()
+            disc_opt.zero_grad()
             loss_disc.backward(retain_graph=True)
             disc_opt.step()
             for p in disc.parameters():
