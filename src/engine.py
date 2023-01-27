@@ -10,39 +10,66 @@ from itertools import combinations
 
 dev = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def train_step(model: nn.Module, data: DataLoader, criterion: nn.Module, optimizer: optim):
+def train_step(disc: nn.Module, gen: nn.Module, data: DataLoader, criterion: nn.Module, disc_opt: optim.Optimizer, gen_opt: optim.Optimizer):
     epoch_error = 0
     l = len(data)
-    model.train()
-    # with torch.autograd.detect_anomaly(True):
+    gen.train()
+    disc.train()
+
     for i, (X1, X2) in enumerate(data):
         X1 = X1.to(dev).squeeze()
         X2 = X2.to(dev).squeeze()
-        out1, out2 = model(X1, X2)
-        # out = torch.cat((out1, out2), dim=0).squeeze()
-        loss = criterion(out1, out2)
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        epoch_error += loss.item()
+        fake, real = gen(X1, X2)
+        discreal = real.detach()
+        for _ in range(5):
+            disc_real = disc(discreal).reshape(-1)
+            disc_fake = disc(fake).reshape(-1)
+            loss_disc = -(torch.mean(disc_real) - torch.mean(disc_fake))
+            disc_opt.zero_grade()
+            loss_disc.backward(retain_graph=True)
+            disc_opt.step()
+            for p in disc.parameters():
+                p.data.clamp_(-0.01, 0.01)
+
+        # gen training
+        gen_loss1 = criterion(fake, real)
+        disc_out = disc(fake).reshape(-1)
+        gen_loss2 = -torch.mean(disc_out)
+        gen_loss = gen_loss1 + gen_loss2
+        gen_opt.zero_grad()
+        gen_loss.backward()
+        gen_opt.step()
+        epoch_error += gen_loss.item()
         # break
     return epoch_error/l
 
 
-def val_step(model: nn.Module, data: DataLoader, criterion: nn.Module):
+def val_step(disc: nn.Module, gen: nn.Module, data: DataLoader, criterion: nn.Module, disc_opt: optim.Optimizer, gen_opt: optim.Optimizer):
     epoch_error = 0
     l = len(data)
-    model.eval()
-    with torch.no_grad():
-        for i, (X1, X2) in enumerate(data):
-            X1 = X1.to(dev).squeeze()
-            X2 = X2.to(dev).squeeze()
-            out1, out2 = model(X1, X2)
-            # out = torch.cat((out1, out2), dim=0).squeeze()
-            loss = criterion(out1, out2)
-            epoch_error += loss.item()
+    gen.eval()
+    disc.eval()
+
+    for i, (X1, X2) in enumerate(data):
+        X1 = X1.to(dev).squeeze()
+        X2 = X2.to(dev).squeeze()
+        fake, real = gen(X1, X2)
+        discreal = real.detach()
+
+        disc_real = disc(discreal).reshape(-1)
+        disc_fake = disc(fake).reshape(-1)
+        loss_disc = -(torch.mean(disc_real) - torch.mean(disc_fake))
+         
+
+        # gen training
+        gen_loss1 = criterion(fake, real)
+        disc_out = disc(fake).reshape(-1)
+        gen_loss2 = -torch.mean(disc_out)
+        gen_loss = gen_loss1 + gen_loss2
+ 
+        epoch_error += gen_loss.item()
         # break
-    return epoch_error/l
+    return epoch_error/l, loss_disc.item()
 
 
 def test_step(model: nn.Module, data: DataLoader, criterion: nn.Module):

@@ -27,18 +27,19 @@ args = parser.parse_args()
 
 
 
+# train_step(disc: nn.Module, gen: nn.Module, data: DataLoader, criterion: nn.Module, disc_opt: optim.Optimizer, gen_opt: optim.Optimizer):
 
 
-
-def train(net: nn.Module, opt: optim.Optimizer, criterion: nn.Module, modelname: str, epochs):
+def train(gen_net: nn.Module, disc_net: nn.Module, gen_opt: optim.Optimizer, disc_opt: optim.Optimizer, criterion: nn.Module, modelname: str, epochs):
     kt = utils.KeepTrack(path=cfg.paths['model'])
     for epoch in range(epochs):
         trainl, testl = ds.createdl()
-        trainloss = engine.train_step(model=net, data=trainl, criterion=criterion, optimizer=opt)
-        valloss = engine.val_step(model=net, data=testl, criterion=criterion)
-        print(f"epoch={epoch}, trainloss={trainloss}, valloss={valloss}")
+        trainloss = engine.train_step(disc=disc_net, gen=gen_net, data=trainl, criterion=criterion, disc_opt=disc_opt, gen_opt=gen_opt)
+        valloss, disc_loss = engine.train_step(disc=disc_net, gen=gen_net, data=testl, criterion=criterion, disc_opt=disc_opt, gen_opt=gen_opt)
+  
+        print(f"epoch={epoch}, trainloss={trainloss}, valloss={valloss}, disc_loss={disc_loss}")
         fname=f'{modelname}_{epoch}.pt'
-        kt.save_ckp(model=net, opt=opt, epoch=epoch, minerror=1, fname=fname)
+        kt.save_ckp(model=gen_net, opt=gen_opt, epoch=epoch, minerror=1, fname=fname)
 
 
 
@@ -48,12 +49,14 @@ def train(net: nn.Module, opt: optim.Optimizer, criterion: nn.Module, modelname:
 
 def main():
     mn = args.modelname
-    Net = m.VideoPrint(inch=3, depth=25)
-    Net.to(dev)
-    crt = utils.OneClassLoss(batch_size=100, pairs=2, reg=0.03)
-    opt = optim.Adam(params=Net.parameters(), lr=3e-3)
+    GenNet = m.VideoPrint(inch=3, depth=20)
+    GenNet.to(dev)
+    discNet = m.Critic(channels_img=1, features_d=64)
+    crt = utils.OneClassLoss(batch_size=150, pairs=2, reg=0.03)
+    gen_opt = optim.RMSprop(params=GenNet.parameters(), lr=3e-4)
+    disc_opt = optim.RMSprop(params=discNet.parameters(), lr=3e-4)
     if args.train:
-        train(net=Net, opt=opt, criterion=crt, modelname=mn, epochs=args.epoch)
+        train(gen_net=GenNet, disc_net=discNet, gen_opt=gen_opt, disc_opt=disc_opt, criterion=crt, modelname=mn, epochs=args.epoch)
     
     
 

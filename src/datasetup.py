@@ -63,7 +63,7 @@ class VideoNoiseSet(Dataset):
         imgs = os.listdir(imgspath)
         imgs = cfg.ds_rm(imgs)
         subimgs = random.sample(imgs, 6)
-        img12 = [cv2.imread(os.path.join(imgspath, i))/255 for i in subimgs]
+        img12 = [(2*cv2.imread(os.path.join(imgspath, i))/255 - 1) for i in subimgs]
         img12crop = [self.crop(img=im, h=h, w=w) for im in img12]
         for j in range(0, 6, 3):
             img12crop[j][:, :, 0] = img12crop[j+1][:, :, 1]
