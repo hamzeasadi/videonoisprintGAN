@@ -15,12 +15,12 @@ class VideoPrint(nn.Module):
         self.noisext = self.blks()
 
     def blks(self):
-        firstlayer = nn.Sequential(nn.Conv2d(in_channels=self.incoordch, out_channels=64, kernel_size=3, stride=1, padding='same'), nn.LeakyReLU())
+        firstlayer = nn.Sequential(nn.Conv2d(in_channels=self.incoordch, out_channels=64, kernel_size=3, stride=1, padding='same'), nn.LeakyReLU(0.2))
         lastlayer = nn.Sequential(nn.Conv2d(in_channels=64, out_channels=1, kernel_size=3, stride=1, padding='same'), nn.Tanh())
 
         midelayers = [firstlayer]
         for i in range(self.depth):
-            layer=nn.Sequential(nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding='same'), nn.BatchNorm2d(num_features=64), nn.LeakyReLU())
+            layer=nn.Sequential(nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding='same'), nn.BatchNorm2d(num_features=64), nn.LeakyReLU(0.2))
             midelayers.append(layer)
         
         midelayers.append(lastlayer)

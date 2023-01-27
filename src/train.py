@@ -35,7 +35,7 @@ def train(gen_net: nn.Module, disc_net: nn.Module, gen_opt: optim.Optimizer, dis
     for epoch in range(epochs):
         trainl, testl = ds.createdl()
         trainloss = engine.train_step(disc=disc_net, gen=gen_net, data=trainl, criterion=criterion, disc_opt=disc_opt, gen_opt=gen_opt)
-        valloss, disc_loss = engine.train_step(disc=disc_net, gen=gen_net, data=testl, criterion=criterion, disc_opt=disc_opt, gen_opt=gen_opt)
+        valloss, disc_loss = engine.val_step(disc=disc_net, gen=gen_net, data=testl, criterion=criterion, disc_opt=disc_opt, gen_opt=gen_opt)
   
         print(f"epoch={epoch}, trainloss={trainloss}, valloss={valloss}, disc_loss={disc_loss}")
         fname=f'{modelname}_{epoch}.pt'
