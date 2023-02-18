@@ -29,6 +29,12 @@ def creatdir(path):
     except Exception as ex:
         print(ex)
 
+def rm_ds(array):
+    try:
+        array.remove('.DS_Store')
+    except Exception as e:
+        print(e)
+    return array
 
 
 def main():
