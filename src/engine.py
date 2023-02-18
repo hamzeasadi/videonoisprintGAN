@@ -30,8 +30,8 @@ def train_step(gen:nn.Module, gdisc:nn.Module, ldisc:nn.Module, genopt:Optimizer
         X = X.squeeze(dim=0)
         # discriminator training
         fakeandrealnoise = gen(X)
-        fakenoise = fakeandrealnoise[fakeidx]
-        realnoise = fakeandrealnoise[realidx]
+        fakenoise = fakeandrealnoise[fakeidx].clone()
+        realnoise = fakeandrealnoise[realidx].clone()
 
         fakelabels = torch.zeros(size=(fakenoise.size()[0], 1), dtype=torch.float32, device=dev)
         reallabels = torch.ones(size=(realnoise.size()[0], 1), dtype=torch.float32, device=dev)
