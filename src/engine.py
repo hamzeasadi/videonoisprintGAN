@@ -50,8 +50,8 @@ def train_step(gen:nn.Module, gdisc:nn.Module, ldisc:nn.Module, genopt:Optimizer
         ldiscopt.step()
 
         # global disc avg realstive
-        gdisc_real = gdisc(realnoise)
-        gdisc_fake = gdisc(fakenoise)
+        gdisc_real = gdisc(realnoise.clone())
+        gdisc_fake = gdisc(fakenoise.clone())
         gdisc_loss_real = gdiscloss(gdisc_real - gdisc_fake, reallabels)
         gdisc_loss_fake = gdiscloss(gdisc_fake - gdisc_real, fakelabels)
         gdisc_loss = (gdisc_loss_fake + gdisc_loss_real)/2
@@ -60,12 +60,12 @@ def train_step(gen:nn.Module, gdisc:nn.Module, ldisc:nn.Module, genopt:Optimizer
         gdiscopt.step()
 
         # gen training
-        ldisc_fake1 = ldisc(fakenoise)
+        ldisc_fake1 = ldisc(fakenoise.clone())
         ldisc_fake_loss = ldiscloss(ldisc_fake1 - ldisc_real, ldisc_real_lables)
         ldisc_real_loss = ldiscloss(ldisc_real - ldisc_fake1, ldisc_fake_lables)
         ldisc_loss1 = (ldisc_fake_loss + ldisc_real_loss)/2
 
-        gdisc_fake1 = gdisc(fakenoise)
+        gdisc_fake1 = gdisc(fakenoise.clone())
         gdisc_loss_real = gdiscloss(gdisc_real - gdisc_fake1, fakelabels)
         gdisc_loss_fake = gdiscloss(gdisc_fake1 - gdisc_real, reallabels)
         gdisc_loss1 = (gdisc_loss_fake + gdisc_loss_real)/2
