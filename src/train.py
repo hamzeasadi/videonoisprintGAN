@@ -25,7 +25,7 @@ parser.add_argument('--epochs', '-e', type=int, required=False, metavar='epochs'
 parser.add_argument('--batch_size', '-bs', type=int, required=True, metavar='numbatches', default=198)
 parser.add_argument('--margin1', '-m1', type=float, required=True, metavar='margin1', default=250)
 parser.add_argument('--margin2', '-m2', type=float, required=True, metavar='margin2', default=100000)
-parser.add_argument('--reg', '-r', type=float, required=True, metavar='reg', default=1.1)
+parser.add_argument('--reg', '-r', type=float, required=True, metavar='reg')
 parser.add_argument('--depth', '-dp', type=int, required=True, metavar='depth', default=15)
 
 
