@@ -26,6 +26,7 @@ def train_step(gen:nn.Module, gdisc:nn.Module, ldisc:nn.Module, genopt:Optimizer
     ldisc.train()
 
     for X in data:
+        X = X.squeeze(dim=0)
         # discriminator training
         fakeandrealnoise = gen(X)
         fakenoise = fakeandrealnoise[fakeidx]
@@ -86,6 +87,7 @@ def val_step(gen:nn.Module, genopt:Optimizer, data:DataLoader, genloss:nn.Module
     gen.eval()
     with torch.no_grad():
         for X in data:
+            X = X.squeeze(dim=0)
             # discriminator training
             fakeandrealnoise = gen(X)
             gen_loss_self = genloss(fakeandrealnoise)

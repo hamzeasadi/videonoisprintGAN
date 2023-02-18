@@ -100,7 +100,10 @@ class VideoNoiseDataset(Dataset):
 
         return Patchcoord
 
-
+def create_loader(batch_size=200, caware=False):
+    traindata = VideoNoiseDataset(datapath=cfg.paths['train'], batch_size=batch_size, numcams=10, coordaware=caware)
+    valdata = VideoNoiseDataset(datapath=cfg.paths['val'], batch_size=100, numcams=5, coordaware=caware)
+    return DataLoader(traindata, batch_size=1), DataLoader(valdata, batch_size=1)
 
 def main():
     path = cfg.paths['data']
