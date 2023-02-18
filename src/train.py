@@ -11,6 +11,7 @@ import model as m
 import engine
 import argparse
 import numpy as np
+import lossfunc
 
 
 dev = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -52,8 +53,8 @@ def train(Gen:nn.Module, Discg:nn.Module, Discl:nn.Module,
     for epoch in range(epochs):
         # reg = 10 - epoch%10
         m1, m2 = epochtom(epoch=epoch, M1=args.margin1, M2=args.margin2, adaptive=args.adaptive)
-        lossfunctr = utils.OneClassLoss(batch_size=batch_size, num_cams=10, reg=args.reg, m1=m1, m2=m2)
-        lossfuncvl = utils.OneClassLoss(batch_size=200, num_cams=5, reg=args.reg, m1=m1, m2=m2)
+        lossfunctr = lossfunc.OneClassLoss(batch_size=batch_size, num_cams=10, reg=args.reg, m1=m1, m2=m2)
+        lossfuncvl = lossfunc.OneClassLoss(batch_size=200, num_cams=5, reg=args.reg, m1=m1, m2=m2)
 
         traindata, valdata = dst.create_loader(batch_size=batch_size, caware=coordaware)
 
