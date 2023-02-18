@@ -49,7 +49,7 @@ def train(Gen:nn.Module, Discg:nn.Module, Discl:nn.Module,
           modelname, batch_size=100, epochs=1000, coordaware=False):
 
     kt = utils.KeepTrack(path=cfg.paths['model'])
-    # traindata, valdata = dst.createdl()
+    torch.autograd.set_detect_anomaly(True)
     for epoch in range(epochs):
         # reg = 10 - epoch%10
         m1, m2 = epochtom(epoch=epoch, M1=args.margin1, M2=args.margin2, adaptive=args.adaptive)
