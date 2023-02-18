@@ -76,7 +76,7 @@ def train_step(gen:nn.Module, gdisc:nn.Module, ldisc:nn.Module, genopt:Optimizer
         gen_loss.backward()
         genopt.step()
 
-        epochloss += gen_loss.item()
+        epochloss = epochloss + gen_loss.item()
 
     return epochloss
 
