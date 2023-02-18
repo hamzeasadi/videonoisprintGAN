@@ -99,6 +99,10 @@ class VideoNoiseDataset(Dataset):
                 Patchcoord = torch.cat((Patchcoord, patchi.unsqueeze(dim=0)), dim=0)
 
         return Patchcoord
+    
+    def __getitem__(self, index):
+        X = self.getpatch(index)
+        return X.float().to(dev)
 
 def create_loader(batch_size=200, caware=False):
     traindata = VideoNoiseDataset(datapath=cfg.paths['train'], batch_size=batch_size, numcams=10, coordaware=caware)

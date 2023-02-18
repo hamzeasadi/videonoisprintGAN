@@ -18,7 +18,8 @@ def getfakrealidx(batch_size, numcams):
     
 
 
-def train_step(gen:nn.Module, gdisc:nn.Module, ldisc:nn.Module, genopt:Optimizer, gdiscopt:Optimizer, ldiscopt:Optimizer, data:DataLoader, genloss:nn.Module, gdiscloss:nn.Module, ldiscloss:nn.Module):
+def train_step(gen:nn.Module, gdisc:nn.Module, ldisc:nn.Module, genopt:Optimizer, gdiscopt:Optimizer, ldiscopt:Optimizer, 
+               data:DataLoader, genloss:nn.Module, gdiscloss:nn.Module, ldiscloss:nn.Module):
     epochloss = 0
     fakeidx, realidx = getfakrealidx(batch_size=100, numcams=10)
     gen.train()
