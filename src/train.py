@@ -58,9 +58,9 @@ def train(Gen:nn.Module, Discg:nn.Module, Discl:nn.Module,
 
         traindata, valdata = dst.create_loader(batch_size=batch_size, caware=coordaware)
 
-        trainloss = engine.train_setp(gen=Gen, gdisc=Discg, ldisc=Discl, genopt=genOpt, gdiscopt=discgOpt, ldiscopt=disclOpt, 
+        trainloss = engine.train_step(gen=Gen, gdisc=Discg, ldisc=Discl, genopt=genOpt, gdiscopt=discgOpt, ldiscopt=disclOpt, 
                                       data=traindata, genloss=lossfunctr, gdiscloss=discgcrt, ldiscloss=disclcrt)
-        valloss = engine.val_setp(gen=Gen, genopt=genOpt, data=valdata, genloss=lossfuncvl)
+        valloss = engine.val_step(gen=Gen, genopt=genOpt, data=valdata, genloss=lossfuncvl)
         fname = f'{modelname}_{epoch}.pt'
         # if epoch%2 == 0:
         kt.save_ckp(model=Gen, opt=genOpt, epoch=epoch, trainloss=trainloss, valloss=valloss, fname=fname)
