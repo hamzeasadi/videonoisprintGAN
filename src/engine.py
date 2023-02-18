@@ -1,106 +1,111 @@
 import torch
 from torch import nn as nn
-from torch import optim as optim
+from torch.optim import Optimizer
 from torch.utils.data import DataLoader
-import numpy as np
-from matplotlib import pyplot as plt
-from sklearn.metrics import accuracy_score
-from itertools import combinations
 
 
 dev = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def train_step(disc: nn.Module, gen: nn.Module, data: DataLoader, criterion: nn.Module, disc_opt: optim.Optimizer, gen_opt: optim.Optimizer):
-    epoch_error = 0
-    l = len(data)
+def getfakrealidx(batch_size, numcams):
+    frmprcam = batch_size//numcams
+    fakeidx = []
+    realidx = []
+    for i in range(0, batch_size, frmprcam):
+        for j in range(frmprcam//2):
+            fakeidx.append(i + j)
+            realidx.append(i+frmprcam//2 + j)
+    return fakeidx, realidx
+    
+
+
+def train_step(gen:nn.Module, gdisc:nn.Module, ldisc:nn.Module, genopt:Optimizer, gdiscopt:Optimizer, ldiscopt:Optimizer, data:DataLoader, genloss:nn.Module, gdiscloss:nn.Module, ldiscloss:nn.Module):
+    epochloss = 0
+    fakeidx, realidx = getfakrealidx(batch_size=100, numcams=10)
     gen.train()
-    disc.train()
+    gdisc.train()
+    ldisc.train()
 
-    for i, (X1, X2) in enumerate(data):
-        X1 = X1.to(dev).squeeze()
-        X2 = X2.to(dev).squeeze()
-        fake, real = gen(X1, X2)
-        
-        discreal = real.detach().to(dev)
-        discfake = fake.detach().to(dev)
-        for _ in range(5):
-            disc_real = disc(discreal).reshape(-1)
-            disc_fake = disc(discfake).reshape(-1)
-            loss_disc = -(torch.mean(disc_real) - torch.mean(disc_fake))
-            disc_opt.zero_grad()
-            loss_disc.backward(retain_graph=True)
-            disc_opt.step()
-            for p in disc.parameters():
-                p.data.clamp_(-0.01, 0.01)
+    for X in data:
+        # discriminator training
+        fakeandrealnoise = gen(X)
+        fakenoise = fakeandrealnoise[fakeidx]
+        realnoise = fakeandrealnoise[realidx]
+
+        fakelabels = torch.zeros(size=(fakenoise.size()[0], 1), dtype=torch.float32, device=dev)
+        reallabels = torch.ones(size=(realnoise.size()[0], 1), dtype=torch.float32, device=dev)
+
+        # local disc avg realitiv
+        ldisc_real = ldisc(realnoise)
+        ldisc_fake = ldisc(fakenoise)
+        ldisc_real_lables = torch.ones_like(ldisc_real, requires_grad=False)
+        ldisc_fake_lables = torch.zeros_like(ldisc_fake, requires_grad=False)
+
+        ldisc_loss_real = ldiscloss(ldisc_real - ldisc_fake.mean(0, keepdims=True), ldisc_real_lables)
+        ldisc_loss_fake = ldiscloss(ldisc_fake - ldisc_real.mean(0, keepdims=True), ldisc_fake_lables)
+        ldisc_loss = (ldisc_loss_fake + ldisc_loss_real)/2
+        ldiscopt.zero_grad()
+        ldisc_loss.backward(retain_graph=True)
+        ldiscopt.step()
+
+        # global disc avg realstive
+        gdisc_real = gdisc(realnoise)
+        gdisc_fake = gdisc(fakenoise)
+        gdisc_loss_real = gdiscloss(gdisc_real - gdisc_fake.mean(0, keepdims=True), reallabels)
+        gdisc_loss_fake = gdiscloss(gdisc_fake - gdisc_real.mean(0, keepdims=True), fakelabels)
+        gdisc_loss = (gdisc_loss_fake + gdisc_loss_real)/2
+        gdiscopt.zero_grad()
+        gdisc_loss.backward(retain_graph=True)
+        gdiscopt.step()
 
         # gen training
-        disc_out = disc(fake).reshape(-1)
-        # print(f"real engine={real.shape}, fake engine={fake.shape}")
-        gen_loss1 = criterion(fake, real)
-        gen_loss2 = -torch.mean(disc_out)
-        gen_loss = gen_loss1 + gen_loss2
-        gen_opt.zero_grad()
+        ldisc_fake = ldisc(fakenoise)
+        ldisc_fake_loss = ldiscloss(ldisc_fake - ldisc_real.mean(0, keepdims=True), ldisc_real_lables)
+        ldisc_real_loss = ldiscloss(ldisc_real - ldisc_fake.mean(0, keepdims=True), ldisc_fake_lables)
+        ldisc_loss = (ldisc_fake_loss + ldisc_real_loss)/2
+
+        gdisc_fake = gdisc(fakenoise)
+        gdisc_loss_real = gdiscloss(gdisc_real - gdisc_fake.mean(0, keepdims=True), fakelabels)
+        gdisc_loss_fake = gdiscloss(gdisc_fake - gdisc_real.mean(0, keepdims=True), reallabels)
+        gdisc_loss = (gdisc_loss_fake + gdisc_loss_real)/2
+
+        gen_loss_self = genloss(fakeandrealnoise)
+        gen_loss = gen_loss_self + gdisc_loss + ldisc_loss
+        genopt.zero_grad()
         gen_loss.backward()
-        gen_opt.step()
-        epoch_error += gen_loss.item()
-        # print("p3")
-        # break
-    return epoch_error/l
+        genopt.step()
+
+        epochloss += gen_loss.item()
+
+    return epochloss
 
 
-def val_step(disc: nn.Module, gen: nn.Module, data: DataLoader, criterion: nn.Module, disc_opt: optim.Optimizer, gen_opt: optim.Optimizer):
-    epoch_error = 0
-    l = len(data)
+
+
+def val_step(gen:nn.Module, genopt:Optimizer, data:DataLoader, genloss:nn.Module):
+    epochloss = 0
     gen.eval()
-    disc.eval()
-
-    for i, (X1, X2) in enumerate(data):
-        X1 = X1.to(dev).squeeze()
-        X2 = X2.to(dev).squeeze()
-        fake, real = gen(X1, X2)
-        discreal = real.detach().to(dev)
-
-        disc_real = disc(discreal).reshape(-1)
-        disc_fake = disc(fake).reshape(-1)
-        loss_disc = -(torch.mean(disc_real) - torch.mean(disc_fake))
-         
-
-        # gen training
-        gen_loss1 = criterion(fake, real)
-        disc_out = disc(fake).reshape(-1)
-        gen_loss2 = -torch.mean(disc_out)
-        gen_loss = gen_loss1 + gen_loss2
- 
-        epoch_error += gen_loss.item()
-        # break
-    return epoch_error/l, loss_disc.item()
-
-
-def test_step(model: nn.Module, data: DataLoader, criterion: nn.Module):
-    epoch_error = 0
-    l = len(data)
-    model.eval()
-    model.to(dev)
-    Y_true = torch.tensor([1], device=dev)
-    Y_pred = torch.tensor([1], device=dev)
     with torch.no_grad():
-        for i, (X, Y) in enumerate(data):
-            X = X.to(dev)
-            Y = Y.to(dev)
-            out = model(X)
-            yhat = torch.argmax(out, dim=1)
-            Y_true = torch.cat((Y_true, Y))
-            Y_pred = torch.cat((Y_pred, yhat))
+        for X in data:
+            # discriminator training
+            fakeandrealnoise = gen(X)
+            gen_loss_self = genloss(fakeandrealnoise)
+            gen_loss = gen_loss_self 
+            epochloss += gen_loss.item()
 
-    print(Y_pred.shape, Y_true.shape)
+    return epochloss
 
-    acc = accuracy_score(Y_pred.cpu().detach().numpy(), Y_true.cpu().detach().numpy())
-    print(f"acc is {acc}")
+
+
+
+
 
 
 def main():
-    y = np.random.randint(low=0, high=3, size=(20,))
-
+    y = 1
+    x = torch.randn(size=(10,1,3,3))
+    lbl = torch.zeros_like(x, requires_grad=False)
+    print(lbl.shape)
+    print(lbl)
 
 if __name__ == '__main__':
     main()

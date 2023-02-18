@@ -1,45 +1,70 @@
-import numpy as np
+import os
+import conf as cfg
 import torch
 from torch import nn as nn
-import model as m
-import utils
-import conf as cfg
-import os
-from torch import optim
 from torch.utils.data import DataLoader
+from torch.optim import Optimizer
+from torch import optim
+import utils
+import datasetup as dst
+import model as m
 import engine
-import datasetup as ds
 import argparse
+import numpy as np
 
 
 dev = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-
 parser = argparse.ArgumentParser(prog='train.py', description='required flags and supplemtary parameters for training')
 parser.add_argument('--train', action=argparse.BooleanOptionalAction)
 parser.add_argument('--test', action=argparse.BooleanOptionalAction)
-# parser.add_argument('--data', '-d', type=str, required=True, default='None')
+parser.add_argument('--coord', action=argparse.BooleanOptionalAction)
+parser.add_argument('--adaptive', action=argparse.BooleanOptionalAction)
 parser.add_argument('--modelname', '-mn', type=str, required=True, default='None')
-parser.add_argument('--epoch', '-e', type=int, required=False, metavar='epoch', default=1)
-# parser.add_argument('--numcls', '-nc', type=int, required=True, metavar='numcls', default=10)
+parser.add_argument('--epochs', '-e', type=int, required=False, metavar='epochs', default=1)
+parser.add_argument('--batch_size', '-bs', type=int, required=True, metavar='numbatches', default=198)
+parser.add_argument('--margin1', '-m1', type=float, required=True, metavar='margin1', default=250)
+parser.add_argument('--margin2', '-m2', type=float, required=True, metavar='margin2', default=100000)
+parser.add_argument('--reg', '-r', type=float, required=True, metavar='reg', default=1.1)
+parser.add_argument('--depth', '-dp', type=int, required=True, metavar='depth', default=15)
+
 
 args = parser.parse_args()
 
+def epochtom(epoch, M1, M2, adaptive=False):
+    if adaptive:
+        m1 = int(max(3, M1/(1+epoch)))
+        m2 = int(max(25, M2/(1+epoch)))
+        return m1, m2
+    else:
+        return M1, M2
+    
 
 
-# train_step(disc: nn.Module, gen: nn.Module, data: DataLoader, criterion: nn.Module, disc_opt: optim.Optimizer, gen_opt: optim.Optimizer):
 
+def train(Gen:nn.Module, Discg:nn.Module, Discl:nn.Module,  
+          genOpt:Optimizer, discgOpt:Optimizer, disclOpt:Optimizer,
+          discgcrt:nn.Module, disclcrt:nn.Module, 
+          modelname, batch_size=100, epochs=1000, coordaware=False):
 
-def train(gen_net: nn.Module, disc_net: nn.Module, gen_opt: optim.Optimizer, disc_opt: optim.Optimizer, criterion: nn.Module, modelname: str, epochs):
     kt = utils.KeepTrack(path=cfg.paths['model'])
+    # traindata, valdata = dst.createdl()
     for epoch in range(epochs):
-        trainl, testl = ds.createdl()
-        trainloss = engine.train_step(disc=disc_net, gen=gen_net, data=trainl, criterion=criterion, disc_opt=disc_opt, gen_opt=gen_opt)
-        valloss, disc_loss = engine.val_step(disc=disc_net, gen=gen_net, data=testl, criterion=criterion, disc_opt=disc_opt, gen_opt=gen_opt)
-  
-        print(f"epoch={epoch}, trainloss={trainloss}, valloss={valloss}, disc_loss={disc_loss}")
-        fname=f'{modelname}_{epoch}.pt'
-        kt.save_ckp(model=gen_net, opt=gen_opt, epoch=epoch, minerror=1, fname=fname)
+        # reg = 10 - epoch%10
+        m1, m2 = epochtom(epoch=epoch, M1=args.margin1, M2=args.margin2, adaptive=args.adaptive)
+        lossfunctr = utils.OneClassLoss(batch_size=batch_size, num_cams=10, reg=args.reg, m1=m1, m2=m2)
+        lossfuncvl = utils.OneClassLoss(batch_size=200, num_cams=5, reg=args.reg, m1=m1, m2=m2)
+
+        traindata, valdata = dst.create_loader(batch_size=batch_size, caware=coordaware)
+
+        trainloss = engine.train_setp(gen=Gen, gdisc=Discg, ldisc=Discl, genopt=genOpt, gdiscopt=discgOpt, ldiscopt=disclOpt, 
+                                      data=traindata, genloss=lossfunctr, gdiscloss=discgcrt, ldiscloss=disclcrt)
+        valloss = engine.val_setp(gen=Gen, genopt=genOpt, data=valdata, genloss=lossfuncvl)
+        fname = f'{modelname}_{epoch}.pt'
+        # if epoch%2 == 0:
+        kt.save_ckp(model=Gen, opt=genOpt, epoch=epoch, trainloss=trainloss, valloss=valloss, fname=fname)
+
+        print(f"epoch={epoch}, trainloss={trainloss}, valloss={valloss}")
 
 
 
@@ -48,18 +73,33 @@ def train(gen_net: nn.Module, disc_net: nn.Module, gen_opt: optim.Optimizer, dis
 
 
 def main():
-    mn = args.modelname
-    GenNet = m.VideoPrint(inch=3, depth=20)
-    GenNet.to(dev)
-    discNet = m.Critic(channels_img=1, features_d=64)
-    discNet.to(dev)
-    crt = utils.OneClassLoss(batch_size=150, pairs=2, reg=0.03)
-    gen_opt = optim.RMSprop(params=GenNet.parameters(), lr=3e-4)
-    disc_opt = optim.RMSprop(params=discNet.parameters(), lr=3e-4)
+    inch=1
+    if args.coord:
+        inch=3
+    
+    gen = m.Gen(inch=1, depth=15)
+    discg = m.Discglobal(inch=1)
+    discl = m.Disclocal(inch=1)
+    gen.to(dev)
+    discg.to(dev)
+    discl.to(dev)
+
+    genopt = optim.Adam(params=gen.parameters())
+    discgopt = optim.Adam(params=discg.parameters())
+    disclopt = optim.Adam(params=discl.parameters())
+
+    disclloss = nn.BCEWithLogitsLoss()
+    discgloss = nn.BCEWithLogitsLoss()
+
     if args.train:
-        train(gen_net=GenNet, disc_net=discNet, gen_opt=gen_opt, disc_opt=disc_opt, criterion=crt, modelname=mn, epochs=args.epoch)
-    
-    
+        train(Gen=gen, Discg=discg, Discl=discl,  
+          genOpt=genopt, discgOpt=discgopt, disclOpt=disclopt,
+          discgcrt=discgloss, disclcrt=disclloss, 
+          modelname=args.modelname, batch_size=args.batch_size, epochs=args.epochs, coordaware=args.coord)
+
+
+    print(args)
+
 
 
 

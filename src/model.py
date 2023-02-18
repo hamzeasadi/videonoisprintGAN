@@ -6,72 +6,72 @@ from torchinfo import summary
 
 
 
-class VideoPrint(nn.Module):
+class Gen(nn.Module):
 
-    def __init__(self, inch:int=3, depth: int=20) -> None:
+    def __init__(self, inch:int=1, depth: int=15) -> None:
         super().__init__()
-        self.incoordch = inch + 2
+        self.inch = inch 
         self.depth = depth
         self.noisext = self.blks()
 
     def blks(self):
         firstlayer = nn.Sequential(nn.Conv2d(in_channels=self.incoordch, out_channels=64, kernel_size=3, stride=1, padding='same'), nn.LeakyReLU(0.2))
-        lastlayer = nn.Sequential(nn.Conv2d(in_channels=64, out_channels=1, kernel_size=3, stride=1, padding='same'), nn.Tanh())
+        lastlayer = nn.Sequential(nn.Conv2d(in_channels=64, out_channels=1, kernel_size=3, stride=1, padding='same'))
 
         midelayers = [firstlayer]
         for i in range(self.depth):
-            layer=nn.Sequential(nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding='same'), nn.BatchNorm2d(num_features=64), nn.LeakyReLU(0.2))
+            layer=nn.Sequential(nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding='same'), 
+                                nn.BatchNorm2d(num_features=64, momentum=0.9, eps=1e-5), nn.LeakyReLU(0.2))
             midelayers.append(layer)
         
         midelayers.append(lastlayer)
         fullmodel = nn.Sequential(*midelayers)
         return fullmodel
 
-    def forward(self, x1, x2):
-        out1 = self.noisext(x1)
-        out2 = self.noisext(x2)
-        return out1, out2
+    def forward(self, x):
+        out = self.noisext(x)
+        res = x[:, 0:1, :, :] - out
+        return res
 
 
-class Critic(nn.Module):
-    def __init__(self, channels_img, features_d) -> None:
+class Discglobal(nn.Module):
+    def __init__(self, inch) -> None:
         super().__init__()
-        
-        self.disc = nn.Sequential(
-            nn.Conv2d(channels_img, features_d, kernel_size=4, stride=2, padding=1), nn.LeakyReLU(0.2),
-            self._block(features_d, features_d*2, 4, 2, 1),
-            self._block(features_d*2, features_d*4, 4, 2, 1),
-            self._block(features_d*4, features_d*8, 4, 2, 1),
-            nn.Conv2d(features_d*8, 1, kernel_size=4, stride=2, padding=0)
-        )
+        self.net = nn.Sequential(
+            nn.Conv2d(in_channels=inch, out_channels=16, kernel_size=3, stride=2, padding=1), nn.LeakyReLU(negative_slope=0.2), nn.Dropout(0.2),
+            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=2, padding=1), nn.LeakyReLU(negative_slope=0.2), nn.Dropout(0.2), nn.BatchNorm2d(32, momentum=0.8),
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=2, padding=1), nn.LeakyReLU(negative_slope=0.2), nn.Dropout(0.2), nn.BatchNorm2d(64, momentum=0.8),
+            nn.Conv2d(in_channels=64, out_channels=128 , kernel_size=3, stride=2, padding=1), nn.LeakyReLU(negative_slope=0.2), nn.Dropout(0.2), nn.BatchNorm2d(128, momentum=0.8),
 
-
-    def _block(self, in_channels, out_channels, kernel_size, stride, padding):
-        return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
-            nn.BatchNorm2d(out_channels), nn.LeakyReLU(0.2)
+            nn.Flatten(),
+            nn.Linear(in_features=4*4*128, out_features=1)
         )
 
     def forward(self, x):
-        return self.disc(x)
+        return self.net(x)
+    
 
+class Disclocal(nn.Module):
+    def __init__(self, inch) -> None:
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Conv2d(in_channels=inch, out_channels=16, kernel_size=4, stride=2, padding=1), nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=4, stride=2, padding=1), nn.BatchNorm2d(32), nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, stride=2, padding=1), nn.BatchNorm2d(64), nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(in_channels=64, out_channels=1, kernel_size=3, stride=1, padding=1),
+        )
 
-# lr=5e-5
-# batch_size=64
-# criticiter = 5
-# wclip = 0.01
-# gen_opt = optim.RMSprob() # both disc and gen
+    def forward(self, x):
+        return self.net(x)
+
 
 def main():
-    x = torch.randn(size=(10, 5, 64, 64))
-    gen = VideoPrint(inch=3, depth=25)
-    # summary(model, input_size=[[10, 5, 64, 64], [10, 5, 64, 64]])
-
-    x = torch.randn(size=(10, 1, 64, 64))
-    critic = Critic(channels_img=1, features_d=64)
-    out = critic(x)
+    x = torch.randn(size=(1, 3, 64, 64))
+    
+    disc = Disclocal(inch=3)
+    out = disc(x)
     print(out.shape)
-    summary(critic, input_size=[10, 1, 64, 64])
+
 
 
 

@@ -5,126 +5,108 @@ from torch import nn
 import cv2
 import itertools as it
 from torch.utils.data import Dataset, DataLoader
-
+from patchify import patchify
 
 
 
 dev = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def datasettemp(iframefolders):
-    folders = os.listdir(iframefolders)
-    folders = cfg.ds_rm(folders)
+def coordinate(High, Width):
+    xcoord = torch.ones(size=(High, Width), dtype=torch.float32)
+    ycoord = torch.ones(size=(High, Width), dtype=torch.float32)
+    for i in range(High):
+        xcoord[i, :] = 2*(i/High) - 1
+    for j in range(Width):
+        ycoord[:, j] = 2*(j/Width) - 1
+    
+    coord = torch.cat((xcoord.unsqueeze(dim=0), ycoord.unsqueeze(dim=0)), dim=0)
+    return coord
+
+coordxy = coordinate(High=720, Width=1280).permute(1, 2, 0).numpy()
+coordpatchs = patchify(coordxy, (64,64, 2), step=64)
+coordxy = torch.from_numpy(coordpatchs).permute(0,1,2,5,3,4)
+
+
+def datasetemp(datapath, camframeperepoch):
+    listofcam = cfg.rm_ds(os.listdir(datapath))
+    patches = [f'patch_{i}_{j}' for i in range(11) for j in range(20)]
     temp = dict()
-    i = 0
-    for folder in folders:
-        for h in range(8, 720-64, 64):
-            for w in range(0, 1280, 64):
-                patchid = f'patch_{i}'
-                temp[patchid] = (folder, h, w)
-                i+=1
+    for patch in patches:
+        camtemp = []
+        for cam in listofcam:
+            campatchpath = os.path.join(datapath, cam, patch)
+            listofpatches = os.listdir(campatchpath)
+            sublistofpatches = random.sample(listofpatches, camframeperepoch)
+            for subpatch in sublistofpatches:
+                subpatchpath = os.path.join(campatchpath, subpatch)
+                camtemp.append(subpatchpath)
+        
+        temp[patch] = camtemp
+
     return temp
 
 
 
-
-class VideoNoiseSet(Dataset):
-    def __init__(self, datapath: str) -> None:
+class VideoNoiseDataset(Dataset):
+    """
+    doc
+    """
+    def __init__(self, datapath, batch_size, numcams, coordaware=False) -> None:
         super().__init__()
-        self.datapath = datapath
-        self.temp = datasettemp(iframefolders=datapath)
-        self.patches = list(self.temp.keys())
-
-    def crop(self, img, h, w):
-        newimg = img[h:h+64, w:w+64, :]
-        return newimg
-
-    def creatcords(self, h, w, H, W):
-        """
-        the normalization depends on the input normalization
-        I HAVE TO APPLY IT LATER
-        """
-        xcoord = torch.ones(size=(64, 64), dtype=torch.float32, device=dev)
-        ycoord = torch.ones(size=(64, 64), dtype=torch.float32, device=dev)
-        for i in range(h, h+64):
-            xcoord[i-h, :] = 2*(i/H) -1
-
-        for j in range(w, w+64):
-            ycoord[:, j-w] = (2*j/W) - 1
-
-        coords = torch.cat((xcoord.unsqueeze(dim=0), ycoord.unsqueeze(dim=0)), dim=0)
-        return coords
-
-
-
-    def get4path(self, patchid, H=720, W=1280):
-        folder, h, w = patchid
-        coord = self.creatcords(h=h, w=w, H=H, W=W)
-        imgspath = os.path.join(self.datapath, folder)
-        imgs = os.listdir(imgspath)
-        imgs = cfg.ds_rm(imgs)
-        subimgs = random.sample(imgs, 6)
-        img12 = [(2*cv2.imread(os.path.join(imgspath, i))/255 - 1) for i in subimgs]
-        img12crop = [self.crop(img=im, h=h, w=w) for im in img12]
-        for j in range(0, 6, 3):
-            img12crop[j][:, :, 0] = img12crop[j+1][:, :, 1]
-            img12crop[j][:, :, 2] = img12crop[j+2][:, :, 1]
-        img1 = torch.cat((torch.from_numpy(img12crop[0]).permute(2, 0, 1).to(dev), coord), dim=0).unsqueeze(dim=0)
-        img2 = torch.cat((torch.from_numpy(img12crop[3]).permute(2, 0, 1).to(dev), coord), dim=0).unsqueeze(dim=0)
-        # img3 = torch.cat((torch.from_numpy(img12crop[6]).permute(2, 0, 1).to(dev), coord), dim=0).unsqueeze(dim=0)
-        # img4 = torch.cat((torch.from_numpy(img12crop[9]).permute(2, 0, 1).to(dev), coord), dim=0).unsqueeze(dim=0)
-        img1 = img1.float()
-        img2 = img2.float()
-        # img3 = img3.float()
-        # img4 = img4.float()
-        # pairone = torch.cat((img1, img2), dim=0)
-        # pairtwo = torch.cat((img3, img4), dim=0)
-        
-        return img1, img2
+        self.cw = coordaware
+        self.path = datapath
+        self.bs = batch_size
+        self.patchs = datasetemp(datapath=datapath, camframeperepoch=batch_size//numcams)
+        self.patchkeys = list(self.patchs.keys())
+        random.shuffle(self.patchkeys)
+        self.xy = coordinate(High=64, Width=64)
 
     def __len__(self):
-        return len(self.patches)
+        return len(self.patchkeys)
 
-    def __getitem__(self, index):
-        subpatches = random.sample(self.patches, 100)
-      
-        patch = self.temp[subpatches[0]]
-        X1, X2 = self.get4path(patchid=patch)
-        for i in range(1, 100):
-            patch = self.temp[subpatches[i]]
-            pair1, pair2 = self.get4path(patchid=patch)
-            X1 = torch.cat((X1, pair1), dim=0)
-            X2 = torch.cat((X2, pair2), dim=0)
+    def getpatch(self, idx):
+        patchid = self.patchkeys[idx]
+        if self.cw:
+            _, hi, wi = patchid.split('_')
+            hi, wi = int(hi), int(wi)
+            patchcoord = coordxy[hi, wi, 0]
+            patchspaths = self.patchs[patchid]
+            img0 = cv2.imread(patchspaths[0])
+            # img1 = (img0 -np.min(img0))/(np.max(img0) - np.min(img0) + 1e-5) 
+            img1 = (img0 -0)/255 
+            patch0 = torch.from_numpy(img1).permute(2, 0, 1)[1:2, :, :]
+            Patchcoord = torch.cat((patch0, patchcoord), dim=0).unsqueeze(dim=0)
+            for i in range(1, len(patchspaths)):
+                img0 = cv2.imread(patchspaths[i])
+                # img1 = (img0 -np.min(img0))/(np.max(img0) - np.min(img0) + 1e-5) 
+                img1 = (img0 -0)/255 
+                patchi = torch.from_numpy(img1).permute(2, 0, 1)[1:2, :, :]
+                patchi = torch.cat((patchi, patchcoord), dim=0).unsqueeze(dim=0)
+                Patchcoord = torch.cat((Patchcoord, patchi), dim=0)
 
-        return X1, X2
-           
+        else:
+            patchspaths = self.patchs[patchid]
+            img0 = cv2.imread(patchspaths[0])
+            # img1 = (img0 -np.min(img0))/(np.max(img0) - np.min(img0) + 1e-5) 
+            img1 = (img0 -0)/255 
+            Patchcoord = torch.from_numpy(img1).permute(2, 0, 1)[1:2, :, :]
+            Patchcoord = Patchcoord.unsqueeze(dim=0) 
+            for i in range(1, len(patchspaths)):
+                img0 = cv2.imread(patchspaths[i])
+                # img1 = (img0 -np.min(img0))/(np.max(img0) - np.min(img0) + 1e-5) 
+                img1 = (img0 -0)/255 
+                patchi = torch.from_numpy(img1).permute(2, 0, 1)[1:2, :, :]
+                Patchcoord = torch.cat((Patchcoord, patchi.unsqueeze(dim=0)), dim=0)
 
-
-
-def createdl():
-    traindata = VideoNoiseSet(datapath=cfg.paths['traindata'])
-    testdata = VideoNoiseSet(datapath=cfg.paths['testdata'])
-    trainl = DataLoader(dataset=traindata, batch_size=1)
-    testl = DataLoader(dataset=testdata, batch_size=1)
-    return trainl, testl
-
-
-
-
-
-
-
+        return Patchcoord
 
 
 
 def main():
     path = cfg.paths['data']
-    temp = datasettemp(iframefolders=path)
-   
-    # dd = VideoNoiseSet(datapath=cfg.paths['iframes'])
-    trainl, testl = createdl()
-    firstbatch = next(iter(testl))
-    print(firstbatch[0].shape, firstbatch[1].shape)
-    
+    x = torch.randn(size=(10, 1, 4,4))
+    subx = x[[1,2,9]]
+    print(subx.shape)
    
 
 if __name__ == "__main__":

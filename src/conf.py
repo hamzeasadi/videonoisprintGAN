@@ -1,5 +1,5 @@
 import os
-
+from os.path import expanduser
 
 
 
@@ -9,9 +9,8 @@ data = os.path.join(root, 'data')
 paths = dict(
     root=root, data=data, model=os.path.join(data, 'model'), 
     videos=os.path.join(data, 'videos'), iframes=os.path.join(data, 'iframes'),
-    patches=os.path.join(data, 'patches'),
-    traindata=os.path.join(data, 'iframes', 'traindata'),
-    testdata=os.path.join(data, 'iframes', 'testdata'),
+    train=os.path.join(data, 'dataset', 'train'), 
+    val=os.path.join(data, 'dataset', 'val'), test=os.path.join(data, 'dataset', 'test')
 
 )
 
@@ -33,8 +32,8 @@ def creatdir(path):
 
 
 def main():
-    pass
-
+    for k, v in paths.items():
+        creatdir(v)
 
 
 if __name__ == '__main__':
