@@ -50,23 +50,23 @@ class KeepTrack():
 
 
 def main():
-    b = 1000
-    # m1 = []
-    # m2 = []
-    # for i in range(b):
-    #     m = min(30*int(i**0.5), 1000)
-    #     m2.append(m)
+    b = 100
+    m1 = []
+    m2 = []
+    for i in range(b):
+        m = max(300, 1000-i*10)
+        m2.append(m)
     
-    # plt.plot(m2)
-    # plt.show()
+    plt.plot(m2)
+    plt.show()
 
-    x = torch.randn(size=(2, 1, 64, 64))
-    conv = nn.Conv2d(in_channels=1, out_channels=8*8, kernel_size=8, stride=8)
-    flatten = nn.Flatten(start_dim=2, end_dim=3)
-    xout = conv(x)
-    xout = flatten(xout)
-    xout = torch.permute(xout, dims=(0, 2, 1))
-    print(xout.shape)
+    # x = torch.randn(size=(2, 1, 64, 64))
+    # conv = nn.Conv2d(in_channels=1, out_channels=8*8, kernel_size=8, stride=8)
+    # flatten = nn.Flatten(start_dim=2, end_dim=3)
+    # xout = conv(x)
+    # xout = flatten(xout)
+    # xout = torch.permute(xout, dims=(0, 2, 1))
+    # print(xout.shape)
 
 
 

@@ -35,7 +35,7 @@ args = parser.parse_args()
 def epochtom(epoch, M1, M2, adaptive=False):
     if adaptive:
         m1 = int(max(10, M1/(1+epoch)))
-        m2 = min(30*int(epoch**0.5), 1000)
+        m2 = max(300, 1000-epoch*10)
         return m1, m2
     else:
         return M1, M2
