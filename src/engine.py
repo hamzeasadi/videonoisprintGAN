@@ -58,7 +58,7 @@ def train_step(gen:nn.Module, gdisc:nn.Module, ldisc:nn.Module, genopt:Optimizer
         gdiscopt.zero_grad()
         gdisc_loss.backward(retain_graph=True)
         gdiscopt.step()
-
+        print("=======================================")
         # gen training
         ldisc_fake1 = ldisc(fakenoise)
         ldisc_fake_loss = ldiscloss(ldisc_fake1 - ldisc_real, ldisc_real_lables)
