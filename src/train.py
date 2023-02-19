@@ -54,7 +54,7 @@ def train(Gen:nn.Module, Discg:nn.Module, Discl:nn.Module,
         # reg = 10 - epoch%10
         m1, m2 = epochtom(epoch=epoch, M1=args.margin1, M2=args.margin2, adaptive=args.adaptive)
         lossfunctr = lossfunc.OneClassLoss(batch_size=batch_size, num_cams=10, reg=args.reg, m1=m1, m2=m2)
-        lossfuncvl = lossfunc.OneClassLoss(batch_size=200, num_cams=5, reg=args.reg, m1=m1, m2=m2)
+        lossfuncvl = lossfunc.OneClassLoss(batch_size=100, num_cams=5, reg=args.reg, m1=m1, m2=m2)
 
         traindata, valdata = dst.create_loader(batch_size=batch_size, caware=coordaware)
 
