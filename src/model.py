@@ -51,7 +51,7 @@ class Discglobal(nn.Module):
         return self.net(x)
     
 
-class Disclocal(nn.Module):
+class Disclocal1(nn.Module):
     def __init__(self, inch) -> None:
         super().__init__()
         self.net = nn.Sequential(
@@ -66,10 +66,34 @@ class Disclocal(nn.Module):
         return self.net(x)
 
 
+class Disclocal(nn.Module):
+    def __init__(self, inch=1) -> None:
+        super().__init__()
+        self.patching = nn.Sequential(nn.Conv2d(in_channels=inch, out_channels=64, kernel_size=8, stride=8), nn.Flatten(start_dim=2, end_dim=3))
+        self.net = nn.Sequential(
+            nn.Conv1d(in_channels=64, out_channels=64, kernel_size=4, stride=2, groups=64), nn.LeakyReLU(0.2),
+            nn.Conv1d(in_channels=64, out_channels=64, kernel_size=4, stride=2, groups=64), nn.LeakyReLU(0.2),
+            nn.Conv1d(in_channels=64, out_channels=64, kernel_size=4, stride=2, groups=64), nn.LeakyReLU(0.2), 
+            nn.Conv1d(in_channels=64, out_channels=64, kernel_size=3, stride=2, groups=64, padding=1), nn.LeakyReLU(0.2),
+            nn.Conv1d(in_channels=64, out_channels=64, kernel_size=3, stride=1, groups=64)
+        )
+
+    def forward(self, x):
+        unorderepatch = self.patching(x)
+        orderpatch = unorderepatch.permute((0,2,1))
+        out = self.net(orderpatch)
+        return out
+
+
+
+
+
+
+
 def main():
-    x = torch.randn(size=(1, 3, 64, 64))
+    x = torch.randn(size=(100, 1, 64, 64))
     
-    disc = Disclocal(inch=3)
+    disc = Discl(inch=1)
     out = disc(x)
     print(out.shape)
 
