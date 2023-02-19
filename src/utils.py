@@ -4,6 +4,7 @@ from torch.nn import functional as F
 import os
 from torch import optim
 from torch.optim import Optimizer
+from matplotlib import pyplot as plt
 
 dev = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -49,9 +50,15 @@ class KeepTrack():
 
 
 def main():
-    b = 4
+    b = 1000
+    m1 = []
+    m2 = []
+    for i in range(b):
+        m = min(15*int(i**0.5), 1000)
+        m2.append(m)
     
- 
+    plt.plot(m2)
+    plt.show()
 
 
 
