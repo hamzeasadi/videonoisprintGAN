@@ -30,15 +30,15 @@ def train_step(gen:nn.Module, gdisc:nn.Module, ldisc:nn.Module, genopt:Optimizer
         X = X.squeeze(dim=0)
         # discriminator training
         fakeandrealnoise = gen(X)
-        fakenoise = fakeandrealnoise[fakeidx].clone()
-        realnoise = fakeandrealnoise[realidx].clone()
+        fakenoise = fakeandrealnoise[fakeidx]
+        realnoise = fakeandrealnoise[realidx]
 
         fakelabels = torch.zeros(size=(fakenoise.size()[0], 1), dtype=torch.float32, device=dev)
         reallabels = torch.ones(size=(realnoise.size()[0], 1), dtype=torch.float32, device=dev)
 
         # local disc avg realitiv
-        ldisc_real = ldisc(realnoise.detach())
-        ldisc_fake = ldisc(fakenoise.detach())
+        ldisc_real = ldisc(realnoise)
+        ldisc_fake = ldisc(fakenoise)
         ldisc_real_lables = torch.ones_like(ldisc_real, requires_grad=False)
         ldisc_fake_lables = torch.zeros_like(ldisc_fake, requires_grad=False)
 
@@ -50,8 +50,8 @@ def train_step(gen:nn.Module, gdisc:nn.Module, ldisc:nn.Module, genopt:Optimizer
         ldiscopt.step()
 
         # global disc avg realstive
-        gdisc_real = gdisc(realnoise.detach())
-        gdisc_fake = gdisc(fakenoise.detach())
+        gdisc_real = gdisc(realnoise)
+        gdisc_fake = gdisc(fakenoise)
         gdisc_loss_real = gdiscloss(gdisc_real - gdisc_fake, reallabels)
         gdisc_loss_fake = gdiscloss(gdisc_fake - gdisc_real, fakelabels)
         gdisc_loss = (gdisc_loss_fake + gdisc_loss_real)/2
@@ -59,31 +59,31 @@ def train_step(gen:nn.Module, gdisc:nn.Module, ldisc:nn.Module, genopt:Optimizer
         gdisc_loss.backward(retain_graph=True)
         gdiscopt.step()
         # print("=======================================")
-        # # gen training
-        # ldisc_fake1 = ldisc(fakenoise.detach())
-        # ldisc_fake_loss = ldiscloss(ldisc_fake1 - ldisc_real, ldisc_real_lables)
-        # ldisc_real_loss = ldiscloss(ldisc_real - ldisc_fake1, ldisc_fake_lables)
-        # ldisc_loss1 = (ldisc_fake_loss + ldisc_real_loss)/2
+        # gen training
+        ldisc_fake1 = ldisc(fakenoise)
+        ldisc_fake_loss = ldiscloss(ldisc_fake1 - ldisc_real.detach(), ldisc_real_lables)
+        ldisc_real_loss = ldiscloss(ldisc_real.detach() - ldisc_fake1, ldisc_fake_lables)
+        ldisc_loss1 = (ldisc_fake_loss + ldisc_real_loss)/2
 
-        # gdisc_fake1 = gdisc(fakenoise.detach())
-        # gdisc_loss_real1 = gdiscloss(gdisc_real - gdisc_fake1, fakelabels)
-        # gdisc_loss_fake1 = gdiscloss(gdisc_fake1 - gdisc_real, reallabels)
-        # gdisc_loss1 = (gdisc_loss_fake1 + gdisc_loss_real1)/2
-
-        # gen_loss_self = genloss(fakeandrealnoise)
-        # gen_loss = gen_loss_self + gdisc_loss1 + ldisc_loss1
-        # genopt.zero_grad()
-        # gen_loss.backward()
-        # genopt.step()
-
-        ldisc_loss1 = ldiscloss(ldisc_fake - ldisc_real, ldisc_real_lables)
-        gdisc_loss1 = gdiscloss(gdisc_fake - gdisc_real, reallabels)
+        gdisc_fake1 = gdisc(fakenoise)
+        gdisc_loss_real1 = gdiscloss(gdisc_real.detach() - gdisc_fake1, fakelabels)
+        gdisc_loss_fake1 = gdiscloss(gdisc_fake1 - gdisc_real.detach(), reallabels)
+        gdisc_loss1 = (gdisc_loss_fake1 + gdisc_loss_real1)/2
 
         gen_loss_self = genloss(fakeandrealnoise)
         gen_loss = gen_loss_self + gdisc_loss1 + ldisc_loss1
         genopt.zero_grad()
         gen_loss.backward()
         genopt.step()
+
+        # ldisc_loss1 = ldiscloss(ldisc_fake - ldisc_real, ldisc_real_lables)
+        # gdisc_loss1 = gdiscloss(gdisc_fake - gdisc_real, reallabels)
+
+        # gen_loss_self = genloss(fakeandrealnoise)
+        # gen_loss = gen_loss_self + gdisc_loss1 + ldisc_loss1
+        # genopt.zero_grad()
+        # gen_loss.backward()
+        # genopt.step()
 
 
         epochloss = epochloss + gen_loss.item()
