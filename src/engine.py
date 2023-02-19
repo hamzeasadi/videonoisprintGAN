@@ -46,7 +46,7 @@ def train_step(gen:nn.Module, gdisc:nn.Module, ldisc:nn.Module, genopt:Optimizer
         ldisc_loss_fake = ldiscloss(ldisc_fake - ldisc_real, ldisc_fake_lables)
         ldisc_loss = (ldisc_loss_fake + ldisc_loss_real)/2
         ldiscopt.zero_grad()
-        ldisc_loss.backward()
+        ldisc_loss.backward(retain_graph=True)
         ldiscopt.step()
 
         # global disc avg realstive
@@ -56,7 +56,7 @@ def train_step(gen:nn.Module, gdisc:nn.Module, ldisc:nn.Module, genopt:Optimizer
         gdisc_loss_fake = gdiscloss(gdisc_fake - gdisc_real, fakelabels)
         gdisc_loss = (gdisc_loss_fake + gdisc_loss_real)/2
         gdiscopt.zero_grad()
-        gdisc_loss.backward()
+        gdisc_loss.backward(retain_graph=True)
         gdiscopt.step()
         # print("=======================================")
         # # gen training
