@@ -3,6 +3,7 @@ from torch import nn as nn
 from torch.nn import functional as F
 import os
 from torch import optim
+from torch.optim import Optimizer
 
 dev = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -31,13 +32,14 @@ def euclidean_distance_matrix(x):
 class KeepTrack():
     def __init__(self, path) -> None:
         self.path = path
-        self.state = dict(model="", opt="", epoch=1, minerror=0.1)
+        self.state = dict(model="", opt="", epoch=1, trainloss=0.1, valloss=0.1)
 
-    def save_ckp(self, model: nn.Module, opt: optim.Optimizer, epoch, minerror, fname: str):
+    def save_ckp(self, model: nn.Module, opt: Optimizer, epoch, fname: str, trainloss=0.1, valloss=0.1):
         self.state['model'] = model.state_dict()
         self.state['opt'] = opt.state_dict()
         self.state['epoch'] = epoch
-        self.state['minerror'] = minerror
+        self.state['trainloss'] = trainloss
+        self.state['valloss'] = valloss
         save_path = os.path.join(self.path, fname)
         torch.save(obj=self.state, f=save_path)
 
