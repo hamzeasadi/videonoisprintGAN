@@ -30,8 +30,8 @@ class Gen(nn.Module):
 
     def forward(self, x):
         out = self.noisext(x)
-        res = x[:, 0:1, :, :] - out
-        return res
+        # res = x[:, 0:1, :, :] - out
+        return out
 
 
 class Discglobal(nn.Module):
