@@ -30,6 +30,30 @@ def euclidean_distance_matrix(x):
     distance_matrix = distance_matrix.clone()*(1.0 - mask)
     return distance_matrix
 
+
+def calc_labels(batch_size, numcams):
+    numframes = batch_size//numcams
+    lbl_dim = numcams * numframes
+    labels = torch.zeros(size=(lbl_dim, lbl_dim), device=dev, dtype=torch.float32)
+    for i in range(0, lbl_dim, numframes):
+        labels[i:i+numframes, i:i+numframes] = 1
+    # for i in range(labels.size()[0]):
+    #     labels[i,i]=0
+    return labels
+
+
+def calc_m(batch_size, numcams, m1, m2):
+    lbls = calc_labels(batch_size=batch_size, numcams=numcams)
+    for i in range(lbls.size()[0]):
+        for j in range(lbls.size()[1]):
+            if lbls[i, j] == 1:
+                lbls[i, j] = m1
+                
+            elif lbls[i, j] == 0:
+                lbls[i, j] = m2
+
+    return lbls
+
 class KeepTrack():
     def __init__(self, path) -> None:
         self.path = path

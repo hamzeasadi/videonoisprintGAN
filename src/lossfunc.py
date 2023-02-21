@@ -3,7 +3,7 @@ import conf as cfg
 import torch
 import utils
 from torch import nn as nn
-
+import lossfunc2
 
 dev = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -55,7 +55,7 @@ class OneClassLoss(nn.Module):
    
 
         self.crt = nn.BCEWithLogitsLoss()
-        # self.newloss = loss2.SoftMLoss(batch_size=batch_size, framepercam=batch_size//num_cams, m1=m1, m2=m2)
+        self.newloss = lossfunc2.SoftMLoss(batch_size=batch_size, framepercam=batch_size//num_cams, m1=m1, m2=m2)
         # self.crt = nn.BCELoss(reduction='mean')
 
     def forward(self, X):
@@ -68,12 +68,15 @@ class OneClassLoss(nn.Module):
         # newlogits = - torch.square(distmatrix)
         # logits = torch.softmax(newlogits, dim=1)
         
-        # # logitsmargin = logits + self.m
-        logits = self.m - torch.square(distmatrix)
-        l1 = self.crt(logits, self.lbls)
+
+        # logits = self.m - torch.square(distmatrix)
+
+        # l1 = self.crt(logits, self.lbls)
+
+        l3 = self.newloss(Xs)
+
         l2 = self.reg*calc_psd(x=Xs)
-        # l3 = self.newloss(Xs)
-        return l1- l2
+        return l3- l2
 
 
 
