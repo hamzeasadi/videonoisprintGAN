@@ -53,16 +53,35 @@ kys = list(model_stat_dict.keys())
 class DnCNN(nn.Module):
     def __init__(self, inch, depth=15):
         super().__init__()
-        self.firstlayer = nn.Conv2d(in_channels=inch, out_channels=64, kernel_size=3, stride=1, padding='same')
-        print( self.firstlayer.weight)
+        firstlayer = nn.Conv2d(in_channels=inch, out_channels=64, kernel_size=3, stride=1, padding='same')
         w = model_stat_dict[kys[0]].requires_grad_(True)
-        # print(model_stat_dict[kys[0]])
-        self.firstlayer.weight.data = w
-        print( self.firstlayer.weight)
+        b = model_stat_dict[kys[1]].requires_grad_(True)
+        firstlayer.weight.data = w
+        firstlayer.bias.data = b
+        midlayer = [nn.Sequential(firstlayer, nn.LeakyReLU(0.2))]
+        for i in range(2, len(kys)-2, 2):
+            w = model_stat_dict[kys[i]].requires_grad_(True)
+            b = model_stat_dict[kys[i+1]].requires_grad_(True)
+            layerconv = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding='same')
+            layerconv.weight.data = w
+            layerconv.bias.data = b
+            midlayer.append(nn.Sequential(layerconv, nn.BatchNorm2d(64, momentum=0.9, eps=1e-5), nn.LeakyReLU(0.2)))
+
+        lastlayer = nn.Conv2d(in_channels=64, out_channels=1, kernel_size=3, stride=1, padding='same')
+        w = model_stat_dict[kys[-2]].requires_grad_(True)
+        b = model_stat_dict[kys[-1]].requires_grad_(True)
+        lastlayer.weight.data = w
+        lastlayer.bias.data = b
+        midlayer.append(nn.Sequential(lastlayer))
+
+        self.netfx = nn.Sequential(*midlayer)
+
+    def forward(self, x):
+        return self.netfx(x)
 
 def singleimg(imgpath):
     img = cv2.imread(imgpath)
-    img0 = (img[200:800, 400:1000]-127)/255
+    img0 = (img[200:800, 400:1000]-0)/255
     trf = transforms.Compose(transforms=[transforms.ToTensor(), transforms.Grayscale()])
     return trf(img0)
 
@@ -77,32 +96,15 @@ def main():
     imgpath = os.path.join(cfg.paths['data'], 'video1iframe0.bmp')
     img = singleimg(imgpath).unsqueeze(dim=0).float()
     
-    model_stat_dict = torch.load(os.path.join(cfg.paths['model'], modelname))
-    kys = model_stat_dict.keys()
-    # print(isinstance(model, collections.OrderedDict))
-    # print(isinstance(model, nn.Module))
+    # model_stat_dict = torch.load(os.path.join(cfg.paths['model'], modelname))
+    # kys = list(model_stat_dict.keys())
 
     model = DnCNN(inch=1)
+    out = model(img)
+    plt.imshow(out.detach().squeeze(), cmap='gray')
+    plt.show()
+   
 
-
-    # # modeldict = model.state_dict()
-    # # print(modeldict.keys())
-
-    # model.load_state_dict(model_stat_dict)
-
-    # refactormodel(net=model)
-
-    # # model.eval()
-    # # out = model(img)
-    # # imgout = out.detach().squeeze().numpy()
-    # # plt.imshow(imgout, cmap='gray')
-    # # plt.show()
-    # # # kys = list(model_stat_dict.keys())
-    # # # print(kys)
-    # # # # for k in kys:
-    # # # #     print(k)
-    # # # #     # print(model_stat_dict[k].shape)
-    # # # #     # break
 
 
 if __name__ == '__main__':
