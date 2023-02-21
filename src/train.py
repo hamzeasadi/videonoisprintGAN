@@ -12,7 +12,7 @@ import engine
 import argparse
 import numpy as np
 import lossfunc
-
+import dnCNN
 
 dev = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -78,7 +78,8 @@ def main():
     if args.coord:
         inch=3
     
-    gen = m.Gen(inch=1, depth=15)
+    # gen = m.Gen(inch=1, depth=15)
+    gen = dnCNN.DnCNN(inch=1, depth=15)
     discg = m.Discglobal(inch=1)
     discl = m.Disclocal(inch=1)
     gen.to(dev)
