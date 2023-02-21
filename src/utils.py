@@ -74,24 +74,22 @@ class KeepTrack():
 
 
 def main():
-    b = 100
+    b = 1000
     m1 = []
     m2 = []
-    for i in range(b):
-        m = max(300, 1000-i*10)
-        m2.append(m)
+    m1 = torch.linspace(start=100, end=5, steps=100)
+    m2 = torch.linspace(start=150, end=10, steps=100)
+    # for i in range(b):
+    #     m = max(3, b)
+    #     m2.append(m)
     
     plt.plot(m2)
     plt.show()
 
-    # x = torch.randn(size=(2, 1, 64, 64))
-    # conv = nn.Conv2d(in_channels=1, out_channels=8*8, kernel_size=8, stride=8)
-    # flatten = nn.Flatten(start_dim=2, end_dim=3)
-    # xout = conv(x)
-    # xout = flatten(xout)
-    # xout = torch.permute(xout, dims=(0, 2, 1))
-    # print(xout.shape)
-
+    # x = abs(torch.randn(size=(10, 1, 64, 64)))
+    # xn = x/torch.max(x)
+    # dist = euclidean_distance_matrix(xn.squeeze())
+    # print(torch.square(dist))
 
 
 if __name__ == '__main__':

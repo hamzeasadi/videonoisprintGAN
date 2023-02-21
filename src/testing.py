@@ -19,27 +19,20 @@ args = parser.parse_args()
 
 
 def main():
+    # img = cv2.imread(os.path.join(cfg.paths['data'], 'inpainting.png'))
+    # img = cv2.imread(os.path.join(cfg.paths['data'], 'splicing.png'))
     img = cv2.imread(os.path.join(cfg.paths['data'], 'video1iframe0.bmp'))
+
     # img0 = 2*(img[300:700, 850:1250, 1:2] - np.min(img[:, :, 1:2] ))/(np.max(img[:, :, 1:2] ) - np.min(img[:, :, 1:2] ) + 1e-5) -1
     # img0 = 1*(img[:, :, 1:2] - np.min(img[:, :, 1:2] ))/(np.max(img[:, :, 1:2] ) - np.min(img[:, :, 1:2] ))
 
     # img0 = (img[100:200, 100:200, 1:2] - 0)/255
-    img0 = (img[240:840, 360:1560, 1:2] - 0)/255
-    img0[100:300, 300:500, :] = img0[300:500, 500:700, :]
+    img0 = (img[200:800, 400:1500, 1:2] - 0)/255
+    # img0[100:300, 300:500, :] = img0[300:500, 500:700, :]
+    img0[100:300, 300:500, :] = img0[100:300, 300:500, :]  + 0.09*np.random.randn(200, 200, 1)
     
     # img0 = (img[300:700, 850:1250, 1:2] - 127 )/255
     imgt = torch.from_numpy(img0).permute(2, 0, 1).unsqueeze(dim=0).float()
-
-    # imgt = torch.from_numpy(img0).permute(2, 0, 1).float()
-    # xx = torch.zeros(size=(200, 64, 64))
-    # for i in range(10):
-    #     hi = i*64
-    #     for j in range(20):
-    #         wi = j*64
-    #         xx[i*20+j] = imgt[0, hi:hi+64, wi:wi+64]
-    
-    # r = calc_psd(xx)
-    # print(r)
 
  
     kt = utils.KeepTrack(path=cfg.paths['model'])
@@ -56,10 +49,16 @@ def main():
         out = model(imgt)
         print(out.shape)
     
+    fig, axs = plt.subplots(1,2)
     img1 = out.detach().squeeze().numpy()
-    # imgout = 255*((img1 - np.min(img1))/(np.max(img1) - np.min(img1)))
+    
+    axs[0].imshow(img0, cmap='gray')
+    axs[0].axis('off')
 
-    plt.imshow(img1, cmap='gray')
+    axs[1].imshow(img1, cmap='gray')
+    axs[1].axis('off')
+
+    plt.subplots_adjust(wspace=0, hspace=0)
     plt.show()
 
 

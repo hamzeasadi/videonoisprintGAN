@@ -41,7 +41,8 @@ def epochtom(epoch, M1, M2, adaptive=False):
         return M1, M2
     
 
-
+M1 = torch.linspace(start=100, end=5, steps=100)
+M2 = torch.linspace(start=150, end=10, steps=100)
 
 def train(Gen:nn.Module, Discg:nn.Module, Discl:nn.Module,  
           genOpt:Optimizer, discgOpt:Optimizer, disclOpt:Optimizer,
@@ -52,7 +53,8 @@ def train(Gen:nn.Module, Discg:nn.Module, Discl:nn.Module,
     # torch.autograd.set_detect_anomaly(True)
     for epoch in range(epochs):
         # reg = 10 - epoch%10
-        m1, m2 = epochtom(epoch=epoch, M1=args.margin1, M2=args.margin2, adaptive=args.adaptive)
+        # m1, m2 = epochtom(epoch=epoch, M1=args.margin1, M2=args.margin2, adaptive=args.adaptive)
+        m1, m2 = M1[epoch], m2[epoch]
         lossfunctr = lossfunc.OneClassLoss(batch_size=batch_size, num_cams=10, reg=args.reg, m1=m1, m2=m2)
         lossfuncvl = lossfunc.OneClassLoss(batch_size=100, num_cams=5, reg=args.reg, m1=m1, m2=m2)
 
