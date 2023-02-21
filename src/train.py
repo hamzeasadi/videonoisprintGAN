@@ -54,7 +54,7 @@ def train(Gen:nn.Module, Discg:nn.Module, Discl:nn.Module,
     for epoch in range(epochs):
         # reg = 10 - epoch%10
         # m1, m2 = epochtom(epoch=epoch, M1=args.margin1, M2=args.margin2, adaptive=args.adaptive)
-        m1, m2 = M1[epoch], m2[epoch]
+        m1, m2 = M1[epoch], M2[epoch]
         lossfunctr = lossfunc.OneClassLoss(batch_size=batch_size, num_cams=10, reg=args.reg, m1=m1, m2=m2)
         lossfuncvl = lossfunc.OneClassLoss(batch_size=100, num_cams=5, reg=args.reg, m1=m1, m2=m2)
 
