@@ -49,14 +49,14 @@ def main():
         out = model(imgt)
         print(out.shape)
     
-    fig, axs = plt.subplots(1,2)
+    fig, axs = plt.subplots(1,1)
     img1 = out.detach().squeeze().numpy()
     
-    axs[0].imshow(img0, cmap='gray')
-    axs[0].axis('off')
+    axs.imshow(img1, cmap='gray')
+    axs.axis('off')
 
-    axs[1].imshow(img1, cmap='gray')
-    axs[1].axis('off')
+    # axs[1].imshow(img1, cmap='gray')
+    # axs[1].axis('off')
 
     plt.subplots_adjust(wspace=0, hspace=0)
     plt.show()
