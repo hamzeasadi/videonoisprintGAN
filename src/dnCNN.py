@@ -58,14 +58,14 @@ class DnCNN(nn.Module):
         b = model_stat_dict[kys[1]].requires_grad_(True)
         firstlayer.weight.data = w
         firstlayer.bias.data = b
-        midlayer = [nn.Sequential(firstlayer, nn.LeakyReLU(0.2))]
+        midlayer = [nn.Sequential(firstlayer, nn.ReLU())]
         for i in range(2, len(kys)-2, 2):
             w = model_stat_dict[kys[i]].requires_grad_(True)
             b = model_stat_dict[kys[i+1]].requires_grad_(True)
             layerconv = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding='same')
             layerconv.weight.data = w
             layerconv.bias.data = b
-            midlayer.append(nn.Sequential(layerconv, nn.BatchNorm2d(64, momentum=0.9, eps=1e-5), nn.LeakyReLU(0.2)))
+            midlayer.append(nn.Sequential(layerconv, nn.BatchNorm2d(64, momentum=0.9, eps=1e-5), nn.ReLU()))
 
         lastlayer = nn.Conv2d(in_channels=64, out_channels=1, kernel_size=3, stride=1, padding='same')
         w = model_stat_dict[kys[-2]].requires_grad_(True)

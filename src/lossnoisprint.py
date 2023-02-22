@@ -40,7 +40,7 @@ class Paperloss(nn.Module):
             p = row[self.lossidx[i]]
             loss += -torch.log(p.sum())
         
-        return loss
+        return loss/self.bs
 
 
 
