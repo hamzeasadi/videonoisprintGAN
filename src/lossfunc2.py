@@ -42,6 +42,7 @@ class SoftMLoss(nn.Module):
         # self.crtsft1 = nn.BCELoss(reduction='mean')
         self.m = utils.calc_m(batch_size=batch_size, numcams=batch_size//framepercam, m1=m1, m2=m2)
 
+
     # def forward(self, x):
     #     xs = x.squeeze()
     #     distmtx = utils.euclidean_distance_matrix(xs)
@@ -90,12 +91,41 @@ class SoftMLoss(nn.Module):
 
 
 def main():
-    batch_size = 200
+    batch_size = 20
     stp = 4
-    x = torch.randn(size=(40, 1, 64, 64))
-    loss = SoftMLoss(batch_size=40, framepercam=4, m1=0, m2=0)
-    print(loss(x))
- 
+    b = 4
+    # x = torch.linspace(start=1, end=batch_size**2, steps=batch_size**2).reshape(shape=(batch_size, batch_size))
+    # print(x)
+    # xoff = x.flatten()[1:].view(batch_size-1, batch_size+1)[:,:-1].reshape(batch_size, batch_size-1)
+    # print(xoff)
+
+    # x = torch.randn(size=(b, 64, 64))
+    # distmtx = utils.euclidean_distance_matrix(x)
+    # distmtxoffdiag = distmtx.flatten()[1:].view(b-1, b+1)[:,:-1].reshape(b, b-1)
+    # distsoft = torch.softmax(-distmtxoffdiag, dim=1)
+
+    # # crt = nn.CrossEntropyLoss()
+    # crt = nn.BCELoss()
+    # print(distsoft)
+    # x = torch.tensor([0,1])
+    # print(distsoft[0][x])
+
+    bs = 20
+    numcams = 5
+    frprcam = bs//numcams
+    ufrprcam = frprcam - 1
+    indexs = []
+    for k,i in enumerate(range(0, bs, frprcam)):
+        for j in range(frprcam):
+            idx = torch.arange(ufrprcam) + i
+            indexs.append(idx)
+    print(indexs)
+    # print(torch.arange(10))
+    # xx = torch.tensor(torch.arange(5))
+    # xx += 1
+    # print(xx)
+
+
 
 
 if __name__ == '__main__':

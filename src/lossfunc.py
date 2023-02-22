@@ -3,7 +3,7 @@ import conf as cfg
 import torch
 import utils
 from torch import nn as nn
-import lossfunc2
+import lossfunc2, lossnoisprint
 
 dev = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -49,34 +49,38 @@ class OneClassLoss(nn.Module):
         self.bs = batch_size
         self.nc = num_cams
         self.reg = reg
-        self.m = calc_m(batch_size=batch_size, numcams=num_cams, m1=m1, m2=m2)
+        # self.m = calc_m(batch_size=batch_size, numcams=num_cams, m1=m1, m2=m2)
         
-        self.lbls = calc_labels(batch_size=batch_size, numcams=num_cams)
+        # self.lbls = calc_labels(batch_size=batch_size, numcams=num_cams)
    
 
-        self.crt = nn.BCEWithLogitsLoss()
+        # self.crt = nn.BCEWithLogitsLoss()
         # self.newloss = lossfunc2.SoftMLoss(batch_size=batch_size, framepercam=batch_size//num_cams, m1=m1, m2=m2)
         # self.crt = nn.BCELoss(reduction='mean')
+
+        self.paperloss = lossnoisprint.Paperloss(batch_size=batch_size, num_cams=num_cams)
 
     def forward(self, X):
         Xs = X.squeeze()
 
-        distmatrix = utils.euclidean_distance_matrix(x=Xs)
+        # distmatrix = utils.euclidean_distance_matrix(x=Xs)
         
-        # for i in range(distmatrix.size()[0]):
-        #     distmatrix[i,i] = 1e+10
-        # newlogits = - torch.square(distmatrix)
-        # logits = torch.softmax(newlogits, dim=1)
+        # # for i in range(distmatrix.size()[0]):
+        # #     distmatrix[i,i] = 1e+10
+        # # newlogits = - torch.square(distmatrix)
+        # # logits = torch.softmax(newlogits, dim=1)
         
 
-        logits = self.m - torch.square(distmatrix)
+        # logits = self.m - torch.square(distmatrix)
 
-        l1 = self.crt(logits, self.lbls)
+        # l1 = self.crt(logits, self.lbls)
 
-        # l3 = self.newloss(Xs)
+        # # l3 = self.newloss(Xs)
+
+        l4 = self.paperloss(X)
 
         l2 = self.reg*calc_psd(x=Xs)
-        return l1 - l2
+        return l4 - l2
 
 
 
