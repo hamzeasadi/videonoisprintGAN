@@ -80,8 +80,8 @@ def main():
     if args.coord:
         inch=3
     
-    # gen = m.Gen(inch=1, depth=15)
-    gen = dnCNN.DnCNN(inch=1, depth=15)
+    gen = m.Gen(inch=1, depth=15)
+    # gen = dnCNN.DnCNN(inch=1, depth=15)
     discg = m.Discglobal(inch=1)
     discl = m.Disclocal(inch=1)
     gen.to(dev)

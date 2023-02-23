@@ -13,7 +13,9 @@ class Gen(nn.Module):
         self.inch = inch 
         self.depth = depth
         self.noisext = self.blks()
+        self.sig = nn.Sigmoid()
 
+        
     def blks(self):
         firstlayer = nn.Sequential(nn.Conv2d(in_channels=self.inch, out_channels=64, kernel_size=3, stride=1, padding='same'), nn.LeakyReLU(0.2))
         lastlayer = nn.Sequential(nn.Conv2d(in_channels=64, out_channels=1, kernel_size=3, stride=1, padding='same'))
