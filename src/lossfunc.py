@@ -49,16 +49,13 @@ class OneClassLoss(nn.Module):
         self.bs = batch_size
         self.nc = num_cams
         self.reg = reg
-        # self.m = calc_m(batch_size=batch_size, numcams=num_cams, m1=m1, m2=m2)
-        
-        # self.lbls = calc_labels(batch_size=batch_size, numcams=num_cams)
-   
+        self.m = calc_m(batch_size=batch_size, numcams=num_cams, m1=m1, m2=m2)
+        self.lbls = calc_labels(batch_size=batch_size, numcams=num_cams)
+        self.crt = nn.BCEWithLogitsLoss()
 
-        # self.crt = nn.BCEWithLogitsLoss()
-        # self.newloss = lossfunc2.SoftMLoss(batch_size=batch_size, framepercam=batch_size//num_cams, m1=m1, m2=m2)
-        # self.crt = nn.BCELoss(reduction='mean')
-
-        self.paperloss = lossnoisprint.Paperloss(batch_size=batch_size, num_cams=num_cams)
+        # # self.newloss = lossfunc2.SoftMLoss(batch_size=batch_size, framepercam=batch_size//num_cams, m1=m1, m2=m2)
+        # # self.crt = nn.BCELoss(reduction='mean')
+        # self.paperloss = lossnoisprint.Paperloss(batch_size=batch_size, num_cams=num_cams)
 
     def forward(self, X):
         Xs = X.squeeze()
