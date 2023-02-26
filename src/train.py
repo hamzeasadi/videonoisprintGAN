@@ -88,9 +88,9 @@ def main():
     discg.to(dev)
     discl.to(dev)
 
-    genopt = optim.Adam(params=gen.parameters())
-    discgopt = optim.Adam(params=discg.parameters())
-    disclopt = optim.Adam(params=discl.parameters())
+    genopt = optim.Adam(params=gen.parameters(), lr=3e-4)
+    discgopt = optim.Adam(params=discg.parameters(), lr=3e-4)
+    disclopt = optim.Adam(params=discl.parameters(), lr=3e-4)
 
     disclloss = nn.BCEWithLogitsLoss()
     discgloss = nn.BCEWithLogitsLoss()
