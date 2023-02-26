@@ -13,17 +13,17 @@ class Gen(nn.Module):
         self.inch = inch 
         self.depth = depth
         self.noisext = self.blks()
-        self.sig = nn.Sigmoid()
+        # self.sig = nn.Sigmoid()
 
         
     def blks(self):
-        firstlayer = nn.Sequential(nn.Conv2d(in_channels=self.inch, out_channels=64, kernel_size=3, stride=1, padding='same'), nn.LeakyReLU(0.2))
+        firstlayer = nn.Sequential(nn.Conv2d(in_channels=self.inch, out_channels=64, kernel_size=3, stride=1, padding='same'), nn.ReLU())
         lastlayer = nn.Sequential(nn.Conv2d(in_channels=64, out_channels=1, kernel_size=3, stride=1, padding='same'))
 
         midelayers = [firstlayer]
         for i in range(self.depth):
             layer=nn.Sequential(nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding='same'), 
-                                nn.BatchNorm2d(num_features=64, momentum=0.9, eps=1e-5), nn.LeakyReLU(0.2))
+                                nn.BatchNorm2d(num_features=64, momentum=0.9, eps=1e-5), nn.ReLU())
             midelayers.append(layer)
         
         midelayers.append(lastlayer)
@@ -31,7 +31,7 @@ class Gen(nn.Module):
         return fullmodel
 
     def forward(self, x):
-        out = self.sig(self.noisext(x))       
+        out = self.noisext(x)     
         return out
 
 
