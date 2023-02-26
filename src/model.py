@@ -31,8 +31,7 @@ class Gen(nn.Module):
         return fullmodel
 
     def forward(self, x):
-        out = self.noisext(x)
-        # res = x[:, 0:1, :, :] - out
+        out = self.sig(self.noisext(x))       
         return out
 
 
@@ -95,7 +94,7 @@ class Disclocal(nn.Module):
 def main():
     x = torch.randn(size=(100, 1, 64, 64))
     
-    disc = Discl(inch=1)
+    disc = Disclocal(inch=1)
     out = disc(x)
     print(out.shape)
 

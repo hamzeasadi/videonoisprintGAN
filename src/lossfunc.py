@@ -59,24 +59,15 @@ class OneClassLoss(nn.Module):
 
     def forward(self, X):
         Xs = X.squeeze()
-
         distmatrix = utils.euclidean_distance_matrix(x=Xs)
-        
-        # # for i in range(distmatrix.size()[0]):
-        # #     distmatrix[i,i] = 1e+10
-        # # newlogits = - torch.square(distmatrix)
-        # # logits = torch.softmax(newlogits, dim=1)
-        
 
         logits = self.m - torch.square(distmatrix)
-
         l1 = self.crt(logits, self.lbls)
-
-        # # l3 = self.newloss(Xs)
 
         # l4 = self.paperloss(X)
 
         l2 = self.reg*calc_psd(x=Xs)
+        
         return l1 - l2
 
 
