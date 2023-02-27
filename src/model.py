@@ -6,6 +6,16 @@ from torchinfo import summary
 
 
 
+class ReLUX(nn.Module):
+    def __init__(self, max_value:float=1.0) -> None:
+        super().__init__()
+        self.max_value = max_value
+        self.scale = 6.0/max_value
+
+    def forward(self, x):
+        return F.relu6(x*self.scale)/self.scale
+
+
 class Gen(nn.Module):
 
     def __init__(self, inch:int=1, depth: int=15) -> None:
@@ -14,7 +24,7 @@ class Gen(nn.Module):
         self.depth = depth
         self.noisext = self.blks()
         # self.sig = nn.Sigmoid()
-        self.rl6 = nn.ReLU6()
+        self.rlx = ReLUX(max_value=1)
 
         
     def blks(self):
@@ -32,7 +42,7 @@ class Gen(nn.Module):
         return fullmodel
 
     def forward(self, x):
-        out = self.rl6(self.noisext(x))     
+        out = self.rlx(self.noisext(x))     
         return out
 
 
@@ -95,9 +105,13 @@ class Disclocal(nn.Module):
 def main():
     x = torch.randn(size=(100, 1, 64, 64))
     
-    disc = Disclocal(inch=1)
-    out = disc(x)
-    print(out.shape)
+    # disc = Disclocal(inch=1)
+    # out = disc(x)
+    # print(out.shape)
+    x = torch.tensor([[-1,1,2], [-2, 4, 6], [1,1.2,0.9]])
+    relu1 = ReLUX(max_value=1)
+    xrl = relu1(x)
+    print(xrl)
 
 
 
