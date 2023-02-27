@@ -25,8 +25,8 @@ def train_step(gen:nn.Module, gdisc:nn.Module, ldisc:nn.Module, genopt:Optimizer
     gen.train()
     gdisc.train()
     ldisc.train()
-
-    for X in data:
+    
+    for i, X in enumerate(data):
         X = X.squeeze(dim=0)
         # discriminator training
         fakeandrealnoise = gen(X)
@@ -93,7 +93,7 @@ def train_step(gen:nn.Module, gdisc:nn.Module, ldisc:nn.Module, genopt:Optimizer
         # genopt.step()
 
 
-        epochloss += epochloss + gen_loss_self.item()
+        epochloss +=  (1/(i+1))*(gen_loss_self.item() - epochloss)
 
     return epochloss
 

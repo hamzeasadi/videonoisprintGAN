@@ -77,11 +77,11 @@ def main():
     b = 1000
     m1 = []
     m2 = []
-    m1 = torch.linspace(start=100, end=5, steps=100)
-    m2 = torch.linspace(start=150, end=10, steps=100)
-    # for i in range(b):
-    #     m = max(3, b)
-    #     m2.append(m)
+    # m1 = torch.linspace(start=100, end=5, steps=100)
+    # m2 = torch.linspace(start=150, end=10, steps=100)
+    for i in range(b):
+        m = max(20, 10000/(i+1))
+        m2.append(m)
     
     plt.plot(m2)
     plt.show()

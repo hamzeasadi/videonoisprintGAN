@@ -14,6 +14,7 @@ class Gen(nn.Module):
         self.depth = depth
         self.noisext = self.blks()
         # self.sig = nn.Sigmoid()
+        self.rl6 = nn.ReLU6()
 
         
     def blks(self):
@@ -31,7 +32,7 @@ class Gen(nn.Module):
         return fullmodel
 
     def forward(self, x):
-        out = self.noisext(x)     
+        out = self.rl6(self.noisext(x))     
         return out
 
 
