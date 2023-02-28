@@ -94,7 +94,7 @@ class Disclocal(nn.Module):
         unorderepatch = self.patching(x)
         orderpatch = unorderepatch.permute((0,2,1))
         out = self.net(orderpatch)
-        return x - out
+        return out
 
 
 
