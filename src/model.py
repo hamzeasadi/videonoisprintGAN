@@ -42,7 +42,7 @@ class Gen(nn.Module):
         return fullmodel
 
     def forward(self, x):
-        out = self.rlx(self.noisext(x))     
+        out = self.noisext(x)   
         return out
 
 
