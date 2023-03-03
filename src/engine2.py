@@ -17,15 +17,20 @@ def train_step(gen:nn.Module, gdisc:nn.Module, gdiscopt:Optimizer, data:DataLoad
     
     for i, X in enumerate(data):
         X = X.squeeze(dim=0)
+
         fakeandrealnoise = gen(X)
+
+        # uniformity loss
+        uniform_loss = utils.calc_psd(fakeandrealnoise.squeeze())
+
         idx_1, idx_2, lbls = utils.get_pairs(batch_size=40, frprcam=40//10)
         X1 = fakeandrealnoise[idx_1]
         X2 = fakeandrealnoise[idx_2]
 
         X1_out = gdisc(X1)
         X2_out = gdisc(X2)
-        gdisc_loss = gdiscloss(X1_out - X2_out, lbls)
- 
+        gdisc_loss = gdiscloss(X1_out - X2_out, lbls) - uniform_loss
+        
         gdiscopt.zero_grad()
         gdisc_loss.backward()
         gdiscopt.step()
