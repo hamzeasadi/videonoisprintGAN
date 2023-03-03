@@ -52,7 +52,7 @@ def val_step(gen:nn.Module, gdisc:nn.Module, data:DataLoader, gdiscloss:nn.Modul
 
             X1_out = gdisc(X1)
             X2_out = gdisc(X2)
-            gdisc_loss = gdiscloss(X1_out - X2_out, torch.from_numpy(lbls))
+            gdisc_loss = gdiscloss(X1_out - X2_out, lbls)
 
             epochloss +=  (1/(i+1))*(gdisc_loss.item() - epochloss)
 
