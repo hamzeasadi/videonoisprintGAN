@@ -5,6 +5,9 @@ import os
 from torch import optim
 from torch.optim import Optimizer
 from matplotlib import pyplot as plt
+import numpy as np
+import random
+from itertools import combinations
 
 dev = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -71,6 +74,28 @@ class KeepTrack():
     def load_ckp(self, fname):
         state = torch.load(os.path.join(self.path, fname), map_location=dev)
         return state
+
+
+def get_pairs(batch_size, frprcam):
+    pair_list = list(combinations(list(range(batch_size)), r=2))
+    pos_pairs = []
+    for i in range(0, batch_size-1, frprcam):
+        sub_pos_pair = list(combinations(list(range(i, i+frprcam)), r=2))
+        for pair in sub_pos_pair:
+            pos_pairs.append(pair)
+    indexs = []
+    for pair in pair_list:
+        if pair in pos_pairs:
+            indexs.append([pair[0], pair[1], 0])
+        else:
+            indexs.append([pair[0], pair[1], 1])
+
+    random.shuffle(indexs)
+    indexs_np = np.array(indexs)
+    index_1, index_2, labels = indexs_np[:, 0], indexs_np[:, 1], indexs_np[:, 2]
+
+    return index_1, index_2, labels
+
 
 
 def main():
