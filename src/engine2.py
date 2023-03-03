@@ -11,6 +11,9 @@ dev = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def train_step(gen:nn.Module, gdisc:nn.Module, gdiscopt:Optimizer, data:DataLoader, gdiscloss:nn.Module):
 
+    gen.train()
+    gdisc.train()
+    epochloss = 0
     
     for i, X in enumerate(data):
         X = X.squeeze(dim=0)
