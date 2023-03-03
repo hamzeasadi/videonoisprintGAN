@@ -76,7 +76,7 @@ class KeepTrack():
         return state
 
 
-def get_pairs(batch_size, frprcam):
+def get_pairs(batch_size, frprcam, ratio=20):
     pair_list = list(combinations(list(range(batch_size)), r=2))
     pos_pairs = []
     for i in range(0, batch_size-1, frprcam):
@@ -93,15 +93,28 @@ def get_pairs(batch_size, frprcam):
     random.shuffle(indexs)
     indexs_np = np.array(indexs)
     index_1, index_2, labels = indexs_np[:, 0], indexs_np[:, 1], indexs_np[:, 2]
+
+    weights = labels.copy()
+    for i, elm in enumerate(weights):
+        if elm == 0:
+            weights[i] = ratio
+        else:
+            weights[i] = 1
+    weights = weights/weights.sum()
+
     labels = torch.from_numpy(labels).view(-1, 1)
-    return index_1, index_2, labels.float().to(dev)
+    weights = torch.from_numpy(weights).view(-1, 1)
+    return index_1, index_2, labels.float().to(dev), weights.float().to(dev)
 
 
 
 def main():
     b = 1000
-    ind1, id2, lbl = get_pairs(batch_size=40, frprcam=4)
-    print(lbl.shape)
+    # ind1, id2, lbl = get_pairs(batch_size=40, frprcam=4)
+    # print(lbl.shape)
+    x = [1,1,1,0,0,0,1,1,1]
+
+    get_pairs(batch_size=10, frprcam=3)
 
 
 if __name__ == '__main__':
