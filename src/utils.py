@@ -94,7 +94,7 @@ def get_pairs(batch_size, frprcam):
     indexs_np = np.array(indexs)
     index_1, index_2, labels = indexs_np[:, 0], indexs_np[:, 1], indexs_np[:, 2]
     labels = torch.from_numpy(labels).view(-1, 1)
-    return index_1, index_2, labels.to(dev)
+    return index_1, index_2, labels.float().to(dev)
 
 
 
