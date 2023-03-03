@@ -104,8 +104,8 @@ def get_pairs(batch_size, frprcam, ratio=20):
 
     labels = torch.from_numpy(labels).view(-1, 1)
     weights = torch.from_numpy(weights).view(-1, 1)*200
-    print(weights)
-    # return index_1, index_2, labels.float().to(dev), weights.float().to(dev)
+    # print(weights)
+    return index_1, index_2, labels.float().to(dev), weights.float().to(dev)
 
 
 
