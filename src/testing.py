@@ -20,16 +20,16 @@ args = parser.parse_args()
 
 def main():
     # img = cv2.imread(os.path.join(cfg.paths['data'], 'inpainting.png'))
-    # img = cv2.imread(os.path.join(cfg.paths['data'], 'splicing.png'))
-    img = cv2.imread(os.path.join(cfg.paths['data'], 'video1iframe0.bmp'))
+    img = cv2.imread(os.path.join(cfg.paths['data'], 'splicing.png'))
+    # img = cv2.imread(os.path.join(cfg.paths['data'], 'video1iframe0.bmp'))
 
     # img0 = 2*(img[300:700, 850:1250, 1:2] - np.min(img[:, :, 1:2] ))/(np.max(img[:, :, 1:2] ) - np.min(img[:, :, 1:2] ) + 1e-5) -1
     # img0 = 1*(img[:, :, 1:2] - np.min(img[:, :, 1:2] ))/(np.max(img[:, :, 1:2] ) - np.min(img[:, :, 1:2] ))
 
-    # img0 = (img[100:200, 100:200, 1:2] - 0)/255
-    img0 = (img[200:800, 400:1500, 1:2] - 0)/255
-    # img0[100:300, 300:500, :] = img0[300:500, 500:700, :]
-    img0[100:300, 300:500, :] = img0[100:300, 300:500, :]  + 0.09*np.random.randn(200, 200, 1)
+    img0 = (img[:, :, 1:2] - 0)/255
+    # img0 = (img[200:800, 400:1500, 1:2] - 0)/255
+    # # img0[100:300, 300:500, :] = img0[300:500, 500:700, :]
+    # img0[100:300, 300:500, :] = img0[100:300, 300:500, :]  + 0.09*np.random.randn(200, 200, 1)
     
     # img0 = (img[300:700, 850:1250, 1:2] - 127 )/255
     imgt = torch.from_numpy(img0).permute(2, 0, 1).unsqueeze(dim=0).float()

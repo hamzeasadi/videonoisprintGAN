@@ -29,7 +29,7 @@ def train_step(gen:nn.Module, gdisc:nn.Module, gdiscopt:Optimizer, data:DataLoad
 
         X1_out = gdisc(X1)
         X2_out = gdisc(X2)
-        gdisc_loss = gdiscloss(X1_out - X2_out, lbls) - 0.01*uniform_loss
+        gdisc_loss = gdiscloss(X1_out - X2_out, lbls) - 0.001*uniform_loss
         
         gdiscopt.zero_grad()
         gdisc_loss.backward()
