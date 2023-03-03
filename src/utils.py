@@ -93,28 +93,15 @@ def get_pairs(batch_size, frprcam):
     random.shuffle(indexs)
     indexs_np = np.array(indexs)
     index_1, index_2, labels = indexs_np[:, 0], indexs_np[:, 1], indexs_np[:, 2]
-
-    return index_1, index_2, labels
+    labels = torch.from_numpy(labels).view(-1, 1)
+    return index_1, index_2, labels.to(dev)
 
 
 
 def main():
     b = 1000
-    m1 = []
-    m2 = []
-    # m1 = torch.linspace(start=100, end=5, steps=100)
-    # m2 = torch.linspace(start=150, end=10, steps=100)
-    for i in range(b):
-        m = max(20, 10000/(i+1))
-        m2.append(m)
-    
-    plt.plot(m2)
-    plt.show()
-
-    # x = abs(torch.randn(size=(10, 1, 64, 64)))
-    # xn = x/torch.max(x)
-    # dist = euclidean_distance_matrix(xn.squeeze())
-    # print(torch.square(dist))
+    ind1, id2, lbl = get_pairs(batch_size=40, frprcam=4)
+    print(lbl.shape)
 
 
 if __name__ == '__main__':
