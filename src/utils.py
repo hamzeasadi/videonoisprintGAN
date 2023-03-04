@@ -100,7 +100,6 @@ def get_pairs(batch_size, frprcam, ratio=20):
             weights[i] = ratio
         else:
             weights[i] = 1
-    weights = weights/weights.sum()
 
     labels = torch.from_numpy(labels).view(-1, 1)
     weights = torch.from_numpy(weights).view(-1, 1)*200

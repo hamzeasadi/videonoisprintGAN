@@ -33,7 +33,8 @@ def train(Gen:nn.Module, Discg:nn.Module,  discgOpt:Optimizer, modelname, batch_
         traindata, valdata = dst.create_loader(batch_size=batch_size, caware=coordaware)
         trainloss = engine2.train_step(gen=Gen, gdisc=Discg, gdiscopt=discgOpt, data=traindata, ratio=args.ratio)
         fname = f'{modelname}_{epoch}.pt'
-        kt.save_ckp(model=Gen, opt=discgOpt, epoch=epoch, trainloss=trainloss, valloss=0.1, fname=fname)
+        if epoch%10 == 0:
+            kt.save_ckp(model=Gen, opt=discgOpt, epoch=epoch, trainloss=trainloss, valloss=0.1, fname=fname)
         print(f"epoch={epoch}, trainloss={trainloss}, valloss={0.1}")
 
 
