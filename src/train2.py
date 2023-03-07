@@ -44,6 +44,7 @@ def train(Gen:nn.Module, Discg:nn.Module,  discgOpt:Optimizer, modelname, batch_
 
 
 def main():
+    kt1 = utils.KeepTrack(path=cfg.paths['model'])
     inch=1
     if args.coord:
         inch=3
@@ -51,6 +52,9 @@ def main():
     gen = m.Gen(inch=1, depth=15)
     discg = m.Discglobal(inch=1)
 
+    state = kt1.load_ckp(fname='ganpartnew_6000.pt')
+    gen.load_state_dict(state['model'])
+    
     gen.to(dev)
     discg.to(dev)
 
