@@ -22,9 +22,11 @@ def train_step(gen:nn.Module, gdisc:nn.Module, gdiscopt:Optimizer, data:DataLoad
         X1 = fakeandrealnoise[idx_1]
         X2 = fakeandrealnoise[idx_2]
 
+        psd_loss = utils.calc_psd(fakeandrealnoise.squeeze())
+
         X1_out = gdisc(X1)
         X2_out = gdisc(X2)
-        gdisc_loss = crt(X1_out - X2_out, lbls)
+        gdisc_loss = crt(X1_out - X2_out, lbls) - psd_loss
  
         gdiscopt.zero_grad()
         gdisc_loss.backward()
