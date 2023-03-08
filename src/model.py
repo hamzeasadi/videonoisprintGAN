@@ -56,7 +56,7 @@ class Discglobal(nn.Module):
             nn.Conv2d(in_channels=64, out_channels=128 , kernel_size=3, stride=2, padding=1), nn.LeakyReLU(negative_slope=0.2), nn.Dropout(0.2), nn.BatchNorm2d(128, momentum=0.8),
 
             nn.Flatten(),
-            nn.Linear(in_features=4*4*128, out_features=1)
+            nn.Linear(in_features=4*4*128, out_features=1), nn.Dropout(0.5)
         )
 
     def forward(self, x):
