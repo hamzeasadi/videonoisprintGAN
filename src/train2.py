@@ -52,7 +52,7 @@ def main():
     gen = m.Gen(inch=1, depth=15)
     discg = m.Discglobal(inch=1)
 
-    state = kt1.load_ckp(fname='ganpartnew_170.pt')
+    state = kt1.load_ckp(fname='ganpartnew_6000.pt')
     gen.load_state_dict(state['model'])
 
     gen.to(dev)
