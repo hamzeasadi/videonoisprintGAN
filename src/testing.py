@@ -19,9 +19,9 @@ args = parser.parse_args()
 
 
 def main():
-    # img = cv2.imread(os.path.join(cfg.paths['data'], 'inpainting.png'))
+    img = cv2.imread(os.path.join(cfg.paths['data'], 'inpainting.png'))
     # img = cv2.imread(os.path.join(cfg.paths['data'], 'splicing.png'))
-    img = cv2.imread(os.path.join(cfg.paths['data'], 'video1iframe0.bmp'))
+    # img = cv2.imread(os.path.join(cfg.paths['data'], 'video1iframe0.bmp'))
 
     # img0 = 2*(img[300:700, 850:1250, 1:2] - np.min(img[:, :, 1:2] ))/(np.max(img[:, :, 1:2] ) - np.min(img[:, :, 1:2] ) + 1e-5) -1
     # img0 = 1*(img[:, :, 1:2] - np.min(img[:, :, 1:2] ))/(np.max(img[:, :, 1:2] ) - np.min(img[:, :, 1:2] ))
