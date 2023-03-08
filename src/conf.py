@@ -7,7 +7,7 @@ root = os.pardir
 data = os.path.join(root, 'data')
 
 paths = dict(
-    root=root, data=data, model=os.path.join(data, 'model'), 
+    root=root, data=data, model=os.path.join(data, 'model'), model_trained=os.path.join(data, 'model_trained'),
     videos=os.path.join(data, 'videos'), iframes=os.path.join(data, 'iframes'),
     train=os.path.join(data, 'dataset', 'train'), 
     val=os.path.join(data, 'dataset', 'val'), test=os.path.join(data, 'dataset', 'test')
