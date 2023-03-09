@@ -74,8 +74,10 @@ class Disc(nn.Module):
 
 
 def main():
-    x = torch.randn(size=(5, 1, 64, 64))
-
+    x = torch.randn(size=(2, 64, 64, 64))
+    net = Genrator(inch=3)
+    out = net(x)
+    print(out)
 
 
 if __name__ == '__main__':
