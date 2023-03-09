@@ -46,17 +46,21 @@ class Gen(nn.Module):
         return out
 
 
-class Discglobal(nn.Module):
+class Disc(nn.Module):
     def __init__(self, inch) -> None:
         super().__init__()
         self.net = nn.Sequential(
-            nn.Conv2d(in_channels=inch, out_channels=16, kernel_size=3, stride=2, padding=1), nn.LeakyReLU(negative_slope=0.2), nn.Dropout(0.2),
-            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=2, padding=1), nn.LeakyReLU(negative_slope=0.2), nn.Dropout(0.2), nn.BatchNorm2d(32, momentum=0.8),
-            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=2, padding=1), nn.LeakyReLU(negative_slope=0.2), nn.Dropout(0.2), nn.BatchNorm2d(64, momentum=0.8),
-            nn.Conv2d(in_channels=64, out_channels=128 , kernel_size=3, stride=2, padding=1), nn.LeakyReLU(negative_slope=0.2), nn.Dropout(0.2), nn.BatchNorm2d(128, momentum=0.8),
+            nn.Conv2d(in_channels=inch, out_channels=16, kernel_size=4, stride=2), 
+            nn.LeakyReLU(negative_slope=0.2), nn.Dropout(0.2),
+            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=4, stride=2), 
+            nn.LeakyReLU(negative_slope=0.2), nn.Dropout(0.2), nn.BatchNorm2d(32, momentum=0.8),
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=2), 
+            nn.LeakyReLU(negative_slope=0.2), nn.Dropout(0.2), nn.BatchNorm2d(64, momentum=0.8),
+            nn.Conv2d(in_channels=64, out_channels=128 , kernel_size=3, stride=2), 
+            nn.LeakyReLU(negative_slope=0.2), nn.Dropout(0.2), nn.BatchNorm2d(128, momentum=0.8),
 
             nn.Flatten(),
-            nn.Linear(in_features=4*4*128, out_features=1)
+            nn.Linear(in_features=2*2*128, out_features=1)
         )
 
     def forward(self, x):
