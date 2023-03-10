@@ -79,6 +79,7 @@ class KeepTrack():
 def get_pairs(batch_size, frprcam, ratio=20):
     pair_list = list(combinations(list(range(batch_size)), r=2))
     pos_pairs = []
+    m = []
     for i in range(0, batch_size-1, frprcam):
         sub_pos_pair = list(combinations(list(range(i, i+frprcam)), r=2))
         for pair in sub_pos_pair:
@@ -86,9 +87,11 @@ def get_pairs(batch_size, frprcam, ratio=20):
     indexs = []
     for pair in pair_list:
         if pair in pos_pairs:
-            indexs.append([pair[0], pair[1], 0])
-        else:
             indexs.append([pair[0], pair[1], 1])
+            m.append(3)
+        else:
+            indexs.append([pair[0], pair[1], 0])
+            m.append(10)
 
     random.shuffle(indexs)
     indexs_np = np.array(indexs)
@@ -103,8 +106,8 @@ def get_pairs(batch_size, frprcam, ratio=20):
 
     labels = torch.from_numpy(labels).view(-1, 1)
     weights = torch.from_numpy(weights).view(-1, 1)*200
-    # print(weights)
-    return index_1, index_2, labels.float().to(dev), weights.float().to(dev)
+    mt = torch.tensor(m, dtype=torch.float32, device=dev)
+    return index_1, index_2, labels.float().to(dev), weights.float().to(dev), mt.view(-1, 1)
 
 
 

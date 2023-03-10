@@ -17,7 +17,7 @@ def train_step(gen:nn.Module, gdisc:nn.Module, gdiscopt:Optimizer, data:DataLoad
     for i, X in enumerate(data):
         X = X.squeeze(dim=0)
         fakeandrealnoise = gen(X)
-        idx_1, idx_2, lbls, w = utils.get_pairs(batch_size=40, frprcam=40//10, ratio=ratio)
+        idx_1, idx_2, lbls, w, m = utils.get_pairs(batch_size=40, frprcam=40//10, ratio=ratio)
         crt = nn.BCEWithLogitsLoss(weight=w)
         X1 = fakeandrealnoise[idx_1]
         X2 = fakeandrealnoise[idx_2]
@@ -29,8 +29,8 @@ def train_step(gen:nn.Module, gdisc:nn.Module, gdiscopt:Optimizer, data:DataLoad
         # gdisc_loss.backward()
         # gdiscopt.step()
 
-        gdisc_loss1 = crt(X1_out - X2_out + 3, lbls)
-        gdisc_loss2 = crt(X2_out - X1_out + 3, lbls)
+        gdisc_loss1 = crt(m - (X1_out - X2_out), lbls)
+        gdisc_loss2 = crt(m - (X2_out - X1_out), lbls)
         gdisc_loss = (gdisc_loss1 + gdisc_loss2)/2
         gdiscopt.zero_grad()
         gdisc_loss.backward()
