@@ -107,15 +107,13 @@ class Disclocal(nn.Module):
 
 
 def main():
-    x = torch.randn(size=(100, 1, 64, 64))
-    
-    # disc = Disclocal(inch=1)
-    # out = disc(x)
-    # print(out.shape)
-    x = torch.tensor([[-1,1,2], [-2, 4, 6], [1,1.2,0.9]])
-    relu1 = ReLUX(max_value=1)
-    xrl = relu1(x)
-    print(xrl)
+    x = torch.randn(size=(5, 1, 64, 64))
+    disc = Disc(inch=1)
+    out = disc(x)
+    print(out)
+    out = out + 10
+    print(out.shape)
+    print(out)
 
 
 
