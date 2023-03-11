@@ -48,7 +48,7 @@ def main():
     if args.coord:
         inch=3
     
-    gen = m.Genrator(inch=1)
+    gen = m.Genrator(inch=1, depth=args.depth)
     discg = m.Disc(inch=1)
 
     gen.to(dev)
