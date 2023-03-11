@@ -29,7 +29,7 @@ def train_step(gen:nn.Module, gdisc:nn.Module, gdiscopt:Optimizer, data:DataLoad
         # gdisc_loss.backward()
         # gdiscopt.step()
 
-        gdisc_loss = crt(m - (X1_out - X2_out), lbls)
+        gdisc_loss = crt(m - torch.abs((X1_out - X2_out)), lbls)
         # gdisc_loss2 = crt(m - (X2_out - X1_out), lbls)
         # gdisc_loss = (gdisc_loss1 + gdisc_loss2)/2
         gdiscopt.zero_grad()
