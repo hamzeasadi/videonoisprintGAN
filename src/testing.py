@@ -20,6 +20,7 @@ args = parser.parse_args()
 
 def main():
     img = cv2.imread(os.path.join(cfg.paths['data'], 'inpainting.png'))
+    # img = cv2.imread(os.path.join(cfg.paths['data'], 'sky.bmp'))
     # img = cv2.imread(os.path.join(cfg.paths['data'], 'splicing.png'))
     # img = cv2.imread(os.path.join(cfg.paths['data'], 'video1iframe0.bmp'))
 
