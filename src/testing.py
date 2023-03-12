@@ -24,7 +24,7 @@ def main():
     # img = cv2.imread(os.path.join(cfg.paths['data'], 'splicing.png'))
     # img = cv2.imread(os.path.join(cfg.paths['data'], 'video1iframe0.bmp'))
 
-    img0 = img/255
+    img0 = img[:,:,1:2]/255
     imgt = torch.from_numpy(img0).permute(2, 0, 1).unsqueeze(dim=0).float()
 
  
@@ -33,7 +33,7 @@ def main():
 
     state = kt.load_ckp(fname=f'{args.mn}.pt')
     print(state['trainloss'], state['valloss'])
-    model = m.Genrator(inch=3)
+    model = m.Genrator(inch=1, depth=15)
     model.load_state_dict(state['model'], strict=True)
     model.eval()
     with torch.no_grad():

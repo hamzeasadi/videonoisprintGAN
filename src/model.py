@@ -72,12 +72,12 @@ class Genrator(nn.Module):
             CustomConv2d(in_channels=inch, out_channels=64, kernel_size=3, stride=1, padding='same'), nn.ReLU()
             )
         lastlayer = nn.Sequential(
-            CustomConv2d(in_channels=64, out_channels=1, kernel_size=3, stride=1, padding='same')
+            nn.Conv2d(in_channels=64, out_channels=1, kernel_size=3, stride=1, padding='same')
             )
         midlayer = [first_block]
         for i in range(depth):
             midlayer.append(
-                nn.Sequential(CustomConv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding='same'), 
+                nn.Sequential(nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding='same'), 
                               nn.BatchNorm2d(64), nn.ReLU())
             )
         midlayer.append(lastlayer)
